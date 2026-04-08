@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "nodemon": "^3.1.14",
+    "react-leaflet": "^5.0.0"
+  }
+}

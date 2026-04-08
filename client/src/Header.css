@@ -1,0 +1,40 @@
+.header-container {
+  display: flex;
+  justify-content: space-between; /* 左右に配置 */
+  align-items: center;
+  background-color: white;
+  padding: 1px 20px;
+  height: 80px;
+  border-bottom: 1px solid #ccc;
+  width: 100%;
+  box-sizing: border-box; /* 横幅の計算を適切にする */
+}
+
+.logo {
+  font-size: 50px;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.user-container {
+  display: flex;
+  justify-content: flex-start; /* 左寄せ */
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column; /* 縦に並べる */
+  align-items: flex-start; /* 左寄せ */
+}
+
+.logout-button {
+  margin-top: 4px; /* ユーザー名とボタンの間隔を小さく */
+  padding: 2px 6px; /* ボタンのサイズをコンパクトに */
+  font-size: 12px; /* 文字サイズを調整 */
+}
+
+.logout-button:hover {
+  color: red;
+}

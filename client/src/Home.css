@@ -1,0 +1,103 @@
+#root {
+  background: white !important; /* ルート要素の背景を白にする */
+}
+
+.homeContainer {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden; /* はみ出しを防ぐ */
+  background: transparent; /* 他の背景が適用されないようにする */
+  flex: 1; /* 高さを自動調整 */
+  overflow: hidden; /* スクロールを防ぐ */
+  justify-content: center; /* 横方向の中央配置 */
+  align-items: center; /* 縦方向の中央配置 */
+  display: flex;
+}
+
+.content {
+  display: flex;
+  grid-template-columns: repeat(2, 1fr); /* 2列レイアウト */
+  gap: 20px; /* ボタンの間隔 */
+  width: auto;
+  margin: auto; /* 中央配置 */
+  justify-content: center; /* 横方向の中央 */
+  align-items: center; /* 縦方向の中央 */
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2列にする！ */
+  gap: 20px;
+  justify-content: center;
+}
+.wave-button {
+  background-color: #004466;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 50px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  width: 500px;
+  height: 200px;
+  background-image: url("../public/img/WaveButton.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  color: white;
+}
+
+.wave-button:hover {
+  background-color: #006699;
+}
+
+.wave-map {
+  background-color: #004466;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 50px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  width: 500px;
+  height: 200px;
+  background-image: url("../public/img/WaveMap.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  color: white;
+}
+
+.button3 {
+  background-color: #004466;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 50px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  width: 500px;
+  height: 200px;
+  background-image: url("");
+  background-position: center;
+  background-repeat: no-repeat;
+  color: white;
+}
+
+.button4 {
+  background-color: #004466;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 50px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  width: 500px;
+  height: 200px;
+  background-image: url("");
+  background-position: center;
+  background-repeat: no-repeat;
+  color: white;
+}
