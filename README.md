@@ -2,13 +2,11 @@
 # Wave App
 React、Open-Meteo API、Leafletを使用して作成した波情報ダッシュボードです。
 
----
-
 ## 2.システム仕様
 ### 技術スタック
 | カテゴリ | 使用技術 |
 | :--- | :--- |
-| **Frontend** | React, CSS Modules |
+| **Frontend** | React |
 | **Backend** | Node.js, Express |
 | **Database** | PostgreSQL (Docker) |
 | **Infrastructure** | Docker, Docker Compose |
@@ -17,11 +15,8 @@ React、Open-Meteo API、Leafletを使用して作成した波情報ダッシュ
 1.  **ユーザー認証機能**: データベース（`user_login` テーブル）と連携したログインシステム。
 2.  **波情報表示**: 地図で指定した座標情報をもとに外部APIから取得した波高データのグラフ表示。
 
----
-
 ## 3.セットアップ手順
 リポジトリを `git pull`した後、以下の手順で環境を構築してください。
-
 ### ① 依存関係のインストール
 プロジェクトルートで以下のコマンドを実行し、全ディレクトリのライブラリを一括で導入します。
 ```bash
@@ -52,13 +47,12 @@ docker-compose up -d
 ```bash
 npm start
 ```
-Frontend: http://localhost:3000
+Frontend: http://localhost:3000  
 Backend: http://localhost:8080
 
 ## 4.データベース構造 (DB Schema)
 ログイン機能に使用しているテーブル構造は以下の通りです。
-
-### 👥 テーブル: `user_login`
+### テーブル: `user_login`
 ユーザーの認証情報を格納します。
 
 | カラム名 | 型 | 制約 | 説明 |
@@ -68,15 +62,13 @@ Backend: http://localhost:8080
 | `user_password` | TEXT | NOT NULL | パスワード（現在は開発用として平文保存）
 
 ## 5. 開発者向けメモ (Developer Notes)
-
-### 🧪 テスト用アカウント
+### テスト用アカウント
 環境構築後、以下の情報ですぐにログイン動作を確認できます。
 - **ユーザー名:** `test`
 - **パスワード:** `password123`
 
-### 💻 便利な運用コマンド
+### 便利な運用コマンド
 開発中に頻繁に使用するコマンド集です。
-
 * **コンテナの状態確認**
     ```bash
     docker-compose ps
