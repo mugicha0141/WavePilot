@@ -77,8 +77,8 @@ Backend: http://localhost:8080
     ```bash
     docker exec -it wave_postgres psql -U user -d wave_db
     ```
-* **サーバー停止とクリーンアップ**
+* **サーバー停止(Ctrl + C）**
+* **クリーンアップ**
     ```bash
-    # サーバー停止 (Ctrl + C) の後
     docker-compose down
     ```
