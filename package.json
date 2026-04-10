@@ -3,5 +3,12 @@
     "leaflet": "^1.9.4",
     "nodemon": "^3.1.14",
     "react-leaflet": "^5.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "scripts": {
+    "install-all": "npm install && npm install --prefix server && npm install --prefix client",
+    "start": "concurrently \"npm start --prefix server\" \"npm start --prefix client\""
   }
 }

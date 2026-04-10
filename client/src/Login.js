@@ -25,7 +25,7 @@ function Login({ onLogin }) {
 
     try {
       console.log("送信するデータ:", formValues);
-      const response = await fetch("http://localhost:5000/server", {
+      const response = await fetch("http://localhost:8080/server", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formValues),
