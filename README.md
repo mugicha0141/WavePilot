@@ -80,5 +80,5 @@ Backend: http://localhost:8080
 * **サーバー停止(Ctrl + C）**
 * **クリーンアップ**
     ```bash
-    docker-compose down
+    docker-compose down -v
     ```
