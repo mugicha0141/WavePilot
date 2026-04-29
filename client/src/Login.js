@@ -34,7 +34,7 @@ function Login({ onLogin }) {
       const data = await response.json();
       if (data.success) {
         //alert(data.message); // 成功のメッセージを表示
-        onLogin(formValues.user_name);
+        onLogin({ id: data.id, user_name: data.user_name });
         navigate("/home");
       } else {
         alert(data.message); // 失敗のメッセージを表示
