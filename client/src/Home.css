@@ -1,5 +1,5 @@
 #root {
-  background: white !important; /* ルート要素の背景を白にする */
+  background: white !important;
 }
 
 .homeContainer {
@@ -30,12 +30,12 @@
   gap: 20px;
   justify-content: center;
 }
-.wave-button {
+.FavoritePlaceList-button {
   background-color: #004466;
-  color: white;
   border: none;
   padding: 15px 30px;
-  font-size: 50px;
+  font-size: 45px;
+  font-family: "Comic Sans MS", cursive, sans-serif;
   border-radius: 8px;
   cursor: pointer;
   text-align: center;
@@ -44,19 +44,19 @@
   background-image: url("../public/img/WaveButton.jpg");
   background-position: center;
   background-repeat: no-repeat;
-  color: white;
+  color: black;
 }
 
-.wave-button:hover {
+.WaveMap-button:hover {
   background-color: #006699;
 }
 
-.wave-map {
+.WaveMap-button {
   background-color: #004466;
-  color: white;
   border: none;
   padding: 15px 30px;
-  font-size: 50px;
+  font-size: 45px;
+  font-family: "Comic Sans MS", cursive, sans-serif;
   border-radius: 8px;
   cursor: pointer;
   text-align: center;
@@ -65,12 +65,11 @@
   background-image: url("../public/img/WaveMap.jpg");
   background-position: center;
   background-repeat: no-repeat;
-  color: white;
+  color: black;
 }
 
 .button3 {
   background-color: #004466;
-  color: white;
   border: none;
   padding: 15px 30px;
   font-size: 50px;
@@ -79,15 +78,15 @@
   text-align: center;
   width: 500px;
   height: 200px;
-  background-image: url("");
+  background-image: url("../public/img/ConstructionImage.jpg");
   background-position: center;
   background-repeat: no-repeat;
+  background-size: contain;
   color: white;
 }
 
 .button4 {
   background-color: #004466;
-  color: white;
   border: none;
   padding: 15px 30px;
   font-size: 50px;
@@ -96,8 +95,9 @@
   text-align: center;
   width: 500px;
   height: 200px;
-  background-image: url("");
+ background-image: url("../public/img/ConstructionImage.jpg");
   background-position: center;
   background-repeat: no-repeat;
+  background-size: contain;
   color: white;
 }

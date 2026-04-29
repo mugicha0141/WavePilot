@@ -3,20 +3,26 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Login from "./Login";
 import Home from "./Home";
 import Header from "./Header";
-import WaveInfo from "./WaveInfo";
+import FavoritePlaceList from "./FavoritePlaceList";
+import FavoritePlaceWaveChart from "./FavoritePlaceWaveChart";
 import WaveMap from "./WaveMap";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
   const location = useLocation(); // 現在のURLの情報を取得
 
   useEffect(() => {
     const storedLoggedIn = localStorage.getItem("isLoggedIn");
+    const storedUsername = localStorage.getItem("username");
+    const storedUserId = localStorage.getItem("userId");
+
     if (storedLoggedIn === "true") {
       setIsLoggedIn(true);
       setUsername(localStorage.getItem("username") || "");
+      setCurrentUser({ id: storedUserId, user_name: storedUsername });
     } else {
       // ログインしていない場合、強制的にログイン画面に遷移
       if (location.pathname !== "/") {
@@ -25,12 +31,15 @@ function App() {
     }
   }, [location, navigate]);
 
-  const handleLogin = (user) => {
+  const handleLogin = (userData) => {
     setIsLoggedIn(true);
-    setUsername(user);
+    setCurrentUser(userData);
+    setUsername(userData.user_name);
+
     localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("username", user);
-    navigate("/home", { replace: true }); // ここでreplace: trueを追加
+    localStorage.setItem("userId", String(userData.id));
+    localStorage.setItem("username", userData.user_name);
+    navigate("/home", { replace: true });
   };
 
   const handleLogout = () => {
@@ -43,23 +52,44 @@ function App() {
 
   return (
     <>
-      {/* ヘッダーはログイン後、ログイン画面で表示しないようにする */}
       {isLoggedIn && location.pathname !== "/" && (
         <Header username={username} onLogout={handleLogout} />
       )}
       <Routes>
         <Route path="/" element={<Login onLogin={handleLogin} />} />
         <Route
-          path="/home"
+          path="/Home"
           element={isLoggedIn ? <Home /> : <Login onLogin={handleLogin} />}
         />
         <Route
-          path="/WaveInfo"
-          element={isLoggedIn ? <WaveInfo /> : <Login onLogin={handleLogin} />}
+          path="/FavoritePlaceList"
+          element={
+            isLoggedIn ? (
+              <FavoritePlaceList currentUser={currentUser} />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
+        />
+        <Route
+          path="/FavoritePlaceWaveChart"
+          element={
+            isLoggedIn ? (
+              <FavoritePlaceWaveChart currentUser={currentUser} />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
         />
         <Route
           path="/WaveMap"
-          element={isLoggedIn ? <WaveMap /> : <Login onLogin={handleLogin} />}
+          element={
+            isLoggedIn ? (
+              <WaveMap currentUser={currentUser} />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
         />
       </Routes>
     </>

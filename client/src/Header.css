@@ -8,6 +8,9 @@
   border-bottom: 1px solid #ccc;
   width: 100%;
   box-sizing: border-box; /* 横幅の計算を適切にする */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .logo {
