@@ -1,0 +1,26 @@
+import axios from "axios";
+
+/**
+ * 波の生データをデータベースにキャッシュする関数
+ * @param {number} userId - ユーザーID
+ * @param {object} coord - {lat, lng} 座標
+ * @param {object} rawData - APIから取得した生のhoursデータ
+ */
+
+const SaveWaveCache = async (userId, coord, rawData) => {
+  try {
+    const response = await axios.put("/api/favorites/cache", {
+      user_id: userId,
+      latitude: coord.lat,
+      longitude: coord.lng,
+      wave_cache: JSON.stringify(rawData), // JSON文字列にして保存
+      updated_at: new Date().toISOString(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error("キャッシュの保存に失敗しました:", error);
+    throw error;
+  }
+};
+
+export default SaveWaveCache;
