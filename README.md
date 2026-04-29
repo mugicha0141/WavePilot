@@ -1,84 +1,181 @@
-## 1.アプリケーション概要
 # Wave App
-React、Open-Meteo API、Leafletを使用して作成した波情報ダッシュボードです。
 
-## 2.システム仕様
+React + Node.js + PostgreSQL で構築したサーファー向け波情報ダッシュボードです。
+地図上でポイントを選択するだけで、最大7日分の波高予報をグラフで確認できます。
+
+---
+
+## 目次
+
+1. [アプリ概要](#1-アプリ概要)
+2. [システム仕様](#2-システム仕様)
+3. [セットアップ手順](#3-セットアップ手順)
+4. [開発者メモ](#4-開発者メモ)
+
+---
+
+## 1. アプリ概要
+
+### 主な機能
+
+| 機能 | 説明 |
+| :--- | :--- |
+| **ユーザー認証** | ログイン・ログアウト（PostgreSQL 連携） |
+| **波情報マップ** | Leaflet 地図上をクリックして座標を指定し、波高グラフを表示 |
+| **波高グラフ** | Stormglass API から取得した 3 時間刻みの波高データを Chart.js で描画（1/2/3/7 日間の切替） |
+| **お気に入り登録** | よく行くポイントを名前・座標付きで DB に保存 |
+| **キャッシュ機能** | お気に入りの波データを DB（JSONB）にキャッシュし、次回以降の読込を高速化 |
+
+### 画面遷移
+
+```
+/           ログイン画面
+ └─ /home        ホーム（メニュー）
+     ├─ /WaveMap              地図 + 波高グラフ
+     └─ /FavoritePlaceList    お気に入り一覧
+          └─ /FavoritePlaceWaveChart   お気に入り地点の波高グラフ
+```
+
+---
+
+## 2. システム仕様
+
 ### 技術スタック
+
 | カテゴリ | 使用技術 |
 | :--- | :--- |
-| **Frontend** | React |
-| **Backend** | Node.js, Express |
-| **Database** | PostgreSQL (Docker) |
-| **Infrastructure** | Docker, Docker Compose |
+| **Frontend** | React 18、React Router v7、Leaflet / react-leaflet、Chart.js、Axios |
+| **Backend** | Node.js、Express 4 |
+| **Database** | PostgreSQL 15（Docker コンテナ） |
+| **外部 API** | [Stormglass API](https://stormglass.io/) （波高・周期・風向データ） |
+| **Infrastructure** | Docker、Docker Compose |
 
-### 主要機能
-1.  **ユーザー認証機能**: データベース（`user_login` テーブル）と連携したログインシステム。
-2.  **波情報表示**: 地図で指定した座標情報をもとに外部APIから取得した波高データのグラフ表示。
+### バックエンド API エンドポイント
 
-## 3.セットアップ手順
-リポジトリを `git pull`した後、以下の手順で環境を構築してください。
+| メソッド | パス | 説明 |
+| :--- | :--- | :--- |
+| `POST` | `/server` | ログイン認証。`user_name` + `user_password` を受け取り、ユーザー情報を返す |
+| `GET` | `/api/wave-data?lat=&lng=` | 座標を受け取り Stormglass API へリクエストして波高データを返す |
+| `POST` | `/api/favorites` | お気に入りポイントを登録する |
+| `GET` | `/api/favorites/:userId` | 指定ユーザーのお気に入り一覧を返す |
+| `PUT` | `/api/favorites/cache` | 指定お気に入りの波データキャッシュを更新する |
+
+### データフロー
+
+```
+ユーザーが地図をクリック
+  → 座標を取得
+  → Frontend: FetchWaveData.js が GET /api/wave-data へリクエスト
+  → Backend: Stormglass API へリクエスト
+  → 波高データを Chart.js グラフとして表示
+  → お気に入り保存 → POST /api/favorites → DB に保存
+  → 次回お気に入り表示時: DB キャッシュから即時ロード（PUT /api/favorites/cache で更新）
+```
+
+### DB スキーマ
+
+#### テーブル: `user_login`
+
+| カラム名 | 型 | 制約 | 説明 |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | 自動採番ユーザー ID |
+| `user_name` | TEXT | UNIQUE, NOT NULL | ログイン用ユーザー名 |
+| `user_password` | TEXT | NOT NULL | パスワード（現在は平文・開発用） |
+
+#### テーブル: `favorite_places`
+
+| カラム名 | 型 | 制約 | 説明 |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | 自動採番 ID |
+| `user_id` | INTEGER | NOT NULL, FK → `user_login.id` | 所有ユーザー |
+| `point_name` | TEXT | NOT NULL | ポイント名（鵠沼、辻堂など） |
+| `latitude` | DOUBLE PRECISION | NOT NULL | 緯度 |
+| `longitude` | DOUBLE PRECISION | NOT NULL | 経度 |
+| `wave_cache` | JSONB | | キャッシュされた波データ（生 JSON） |
+| `updated_at` | TIMESTAMP | | キャッシュ最終更新日時 |
+
+- `user_login.id` に CASCADE DELETE 設定済み（ユーザー削除でお気に入りも自動削除）
+
+---
+
+## 3. セットアップ手順
+
+### 前提条件
+
+- Node.js 18+
+- Docker / Docker Compose
+- Stormglass API キー（[stormglass.io](https://stormglass.io/) で無料取得可）
+
 ### ① 依存関係のインストール
-プロジェクトルートで以下のコマンドを実行し、全ディレクトリのライブラリを一括で導入します。
+
+プロジェクトルートで以下を実行するとクライアント・サーバー双方の依存関係を一括インストールします。
+
 ```bash
 npm run install-all
 ```
-### ② 環境変数 (.env) の作成
-セキュリティ保護のため Git に含まれていない設定ファイルを作成します。
-server/ ディレクトリ直下に .env ファイルを作成し、以下を記述してください。
 
-ファイルパス: server/.env
-```bash
+### ② 環境変数ファイルの作成
+
+`server/.env` を新規作成し、以下を記述してください。
+
+```env
 DB_USER=user
 DB_HOST=localhost
 DB_NAME=wave_db
 DB_PASSWORD=password
 DB_PORT=5432
 PORT=8080
+STORMGLASS_API_KEY=<取得した API キー>
 ```
 
 ### ③ データベースの起動
-Docker Compose を使用して、PostgreSQL コンテナをバックグラウンドで起動します。
+
+Docker Compose で PostgreSQL コンテナをバックグラウンド起動します。
+初回起動時に `init.sql` が自動実行され、テーブルとテストユーザーが作成されます。
+
 ```bash
 docker-compose up -d
 ```
-起動時に init.sql が実行され、テスト用ユーザーが自動作成されます。
 
 ### ④ アプリケーションの起動
+
 ```bash
 npm start
 ```
-Frontend: http://localhost:3000  
-Backend: http://localhost:8080
 
-## 4.データベース構造 (DB Schema)
-ログイン機能に使用しているテーブル構造は以下の通りです。
-### テーブル: `user_login`
-ユーザーの認証情報を格納します。
+| サービス | URL |
+| :--- | :--- |
+| Frontend | http://localhost:3000 |
+| Backend | http://localhost:8080 |
 
-| カラム名 | 型 | 制約 | 説明 |
-| :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | 自動採番されるユーザー固有ID |
-| `user_name` | TEXT | UNIQUE, NOT NULL | ログインに使用するユーザー名 |
-| `user_password` | TEXT | NOT NULL | パスワード（現在は開発用として平文保存）
+---
 
-## 5. 開発者向けメモ (Developer Notes)
+## 4. 開発者メモ
+
 ### テスト用アカウント
-環境構築後、以下の情報ですぐにログイン動作を確認できます。
+
+`init.sql` により環境構築直後から以下のアカウントでログインできます。
+
 - **ユーザー名:** `test`
 - **パスワード:** `password123`
 
-### 便利な運用コマンド
-開発中に頻繁に使用するコマンド集です。
-* **コンテナの状態確認**
-    ```bash
-    docker-compose ps
-    ```
-* **DBの中身を直接確認 (psql)**
-    ```bash
-    docker exec -it wave_postgres psql -U user -d wave_db
-    ```
-* **サーバー停止(Ctrl + C）**
-* **クリーンアップ**
-    ```bash
-    docker-compose down
-    ```
+### よく使うコマンド
+
+```bash
+# コンテナ状態確認
+docker-compose ps
+
+# psql で DB に直接接続
+docker exec -it wave_postgres psql -U user -d wave_db
+
+# アプリ停止
+Ctrl + C
+
+# コンテナ停止・削除
+docker-compose down
+```
+
+### セキュリティ上の注意
+
+- パスワードは現在 **平文保存** です。本番運用前に bcrypt 等でハッシュ化してください。
+- Stormglass API キーは `.env` に記載し、**絶対に Git にコミットしないでください**（`.gitignore` 設定済み）。
