@@ -8,18 +8,26 @@ const Home = () => {
     <div className="homeContainer">
       <main className="content">
         <div className="button-grid">
-          <button className="wave-button" onClick={() => navigate("/WaveInfo")}>
-            波情報
+          <button
+            className="FavoritePlaceList-button"
+            onClick={() => navigate("/FavoritePlaceList")}
+          >
+            FavoritePlace
           </button>
-          <button className="wave-map" onClick={() => navigate("/WaveMap")}>
-            波マップ
+          <button
+            className="WaveMap-button"
+            onClick={() => navigate("/WaveMap")}
+          >
+            WaveMap
           </button>
-          <button className="button3" onClick={() => navigate("/Button3")}>
-            ボタン3
-          </button>
-          <button className="button4" onClick={() => navigate("/Button4")}>
-            ボタン4
-          </button>
+          <button
+            className="button3"
+            onClick={() => navigate("/Button3")}
+          ></button>
+          <button
+            className="button4"
+            onClick={() => navigate("/Button4")}
+          ></button>
         </div>
       </main>
     </div>
