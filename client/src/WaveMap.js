@@ -32,7 +32,7 @@ const WaveMap = ({ currentUser }) => {
         const newLat = e.latlng.lat;
         const newLng = e.latlng.lng;
 
-        console.log("取得した座標:", newLat, newLng);
+        console.log("[Client] 取得した座標:", newLat, newLng);
 
         // 状態更新
         setLocation({ lat: newLat, lng: newLng });

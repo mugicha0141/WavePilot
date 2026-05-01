@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./FavoritePlaceList.css";
 
 function FavoritePlaceList({ currentUser }) {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [editPointName, setEditPointName] = useState("");
 
   useEffect(() => {
-    // ログインしていない場合は処理しない
     if (!currentUser || !currentUser.id) {
       setLoading(false);
       return;
@@ -16,14 +19,12 @@ function FavoritePlaceList({ currentUser }) {
 
     const fetchFavorites = async () => {
       try {
-        // バックエンドのAPIから、ログインユーザーIDに紐づくデータを取得
         const response = await fetch(`/api/favorites/${currentUser.id}`);
         if (!response.ok) throw new Error("データ取得に失敗しました");
-
         const data = await response.json();
         setFavorites(data);
       } catch (error) {
-        console.error("Fetch Error:", error);
+        console.error("[Client] Fetch Error:", error);
       } finally {
         setLoading(false);
       }
@@ -40,27 +41,61 @@ function FavoritePlaceList({ currentUser }) {
       </div>
     );
   }
-  //   // 本来は localStorage や DB から取得しますが、まずはテストデータで動作確認します
-  //   // 波マップで保存したデータが [{name: "鵠沼", lat: 35.3, lng: 139.4}, ...] という形式と想定
-  //   const savedFavorites = JSON.parse(
-  //     localStorage.getItem("favoriteWaves"),
-  //   ) || [
-  //     { id: 1, name: "鵠沼海岸", lat: 35.31, lng: 139.47 },
-  //     { id: 2, name: "由比ヶ浜", lat: 35.31, lng: 139.54 },
-  //   ];
-  //   setFavorites(savedFavorites);
-  // }, []);
 
-  // 「波予報を見る」ボタン処理
   const handleOpen = (point) => {
-    // 取得したデータのカラム名（point_name, latitude等）に合わせて遷移
-    navigate("/FavoritePlaceWaveChart", {
-      state: {
-        location: { lat: point.latitude, lng: point.longitude },
-        name: point.point_name,
+    if (!currentUser?.id || !point?.id) return;
+    navigate(
+      `/user/${currentUser.id}/FavoritePlaceList/${point.id}?lat=${point.latitude}&lng=${point.longitude}`,
+      {
+        state: {
+          location: { lat: point.latitude, lng: point.longitude },
+          name: point.point_name,
+          wave_cache: point.wave_cache,
+        },
       },
-    });
+    );
   };
+
+  const handleUpdate = async () => {
+    if (!selectedItem?.id) return;
+    try {
+      const res = await fetch(`/api/favorites/${selectedItem.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ point_name: editPointName }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setFavorites(
+          favorites.map((f) =>
+            f.id === selectedItem.id ? { ...f, point_name: editPointName } : f,
+          ),
+        );
+        setSelectedItem((prev) => ({ ...prev, point_name: editPointName }));
+        setIsEditModalOpen(false);
+      }
+    } catch (error) {
+      alert("更新に失敗しました");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedItem?.id) return;
+    try {
+      const res = await fetch(`/api/favorites/${selectedItem.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setFavorites(favorites.filter((f) => f.id !== selectedItem.id));
+        setSelectedItem(null);
+        setIsDeleteModalOpen(false);
+      }
+    } catch (error) {
+      alert("削除に失敗しました");
+    }
+  };
+
+  if (loading) return <div className="favorite-container">読み込み中...</div>;
 
   return (
     <div className="favorite-container">
@@ -75,53 +110,243 @@ function FavoritePlaceList({ currentUser }) {
           お気に入りが登録されていません。
         </p>
       ) : (
-        <table className="favorite-table">
-          <thead>
-            <tr>
-              <th className="favorite-th">ポイント名</th>
-              <th className="favorite-th">座標 (緯度, 経度)</th>
-              <th className="favorite-th">アクション</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* map関数で、データの数だけ <tr> を生成する */}
-            {favorites.map((point) => (
-              <tr key={point.id}>
-                <td className="favorite-th">
-                  <strong>{point.point_name}</strong>
-                </td>
-                <td className="favorite-th">
-                  <span style={{ color: "#666" }}>
-                    {point.latitude.toFixed(4)}, {point.longitude.toFixed(4)}
-                  </span>
-                </td>
-                <td className="favorite-th">
-                  <button
-                    className="open-button"
-                    onClick={() => handleOpen(point)}
-                  >
-                    波予報を見る
-                  </button>
-                </td>
+        <>
+          <table className="favorite-table">
+            <thead>
+              <tr>
+                <th className="favorite-th">ポイント名</th>
+                <th className="favorite-th">座標 (緯度, 経度)</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {favorites.map((point) => (
+                <React.Fragment key={point.id}>
+                  <tr
+                    onClick={() =>
+                      setSelectedItem(
+                        selectedItem?.id === point.id ? null : point,
+                      )
+                    }
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor:
+                        selectedItem?.id === point.id
+                          ? "#e8f4fd"
+                          : "transparent",
+                      borderLeft:
+                        selectedItem?.id === point.id
+                          ? "3px solid #36A2EB"
+                          : "3px solid transparent",
+                      transition: "background-color 0.15s",
+                    }}
+                  >
+                    <td className="favorite-th">
+                      <strong>{point.point_name}</strong>
+                    </td>
+                    <td className="favorite-th">
+                      <span style={{ color: "#666" }}>
+                        {point.latitude.toFixed(4)},{" "}
+                        {point.longitude.toFixed(4)}
+                      </span>
+                    </td>
+                  </tr>
+                  {selectedItem?.id === point.id && (
+                    <tr>
+                      <td
+                        colSpan={2}
+                        style={{
+                          padding: "10px 16px",
+                          backgroundColor: "#f0f8ff",
+                          borderLeft: "3px solid #36A2EB",
+                        }}
+                      >
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <button
+                            className="open-button"
+                            onClick={() => handleOpen(selectedItem)}
+                          >
+                            波予報を見る
+                          </button>
+                          <button
+                            className="open-button"
+                            onClick={() => {
+                              setEditPointName(selectedItem.point_name);
+                              setIsEditModalOpen(true);
+                            }}
+                          >
+                            編集
+                          </button>
+                          <button
+                            className="delete-button"
+                            onClick={() => setIsDeleteModalOpen(true)}
+                          >
+                            削除
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
 
       <div style={{ marginTop: "30px", textAlign: "center" }}>
-        <button
-          onClick={() => navigate("/home")}
+        <Link
+          to="/home"
           style={{
-            background: "none",
-            border: "none",
             color: "#007bff",
-            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "5px 10px",
           }}
         >
-          ← メニューに戻る
-        </button>
+          ← 🏠 ホームへ戻る
+        </Link>
       </div>
+
+      {isEditModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "20px",
+              borderRadius: "8px",
+              width: "300px",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>ポイント名を編集</h3>
+            <label style={{ fontSize: "0.8rem", color: "#666" }}>
+              新しいポイント名
+            </label>
+            <input
+              type="text"
+              value={editPointName}
+              onChange={(e) => setEditPointName(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px",
+                marginBottom: "15px",
+                boxSizing: "border-box",
+              }}
+            />
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                style={{
+                  padding: "8px 15px",
+                  border: "none",
+                  background: "#ccc",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleUpdate}
+                style={{
+                  padding: "8px 15px",
+                  border: "none",
+                  background: "#36A2EB",
+                  color: "white",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                更新する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDeleteModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "20px",
+              borderRadius: "8px",
+              width: "300px",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>削除の確認</h3>
+            <p style={{ fontSize: "0.9rem", color: "#444" }}>
+              「{selectedItem?.point_name}」を削除しますか？
+            </p>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                style={{
+                  padding: "8px 15px",
+                  border: "none",
+                  background: "#ccc",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleDelete}
+                style={{
+                  padding: "8px 15px",
+                  border: "none",
+                  background: "#e74c3c",
+                  color: "white",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
