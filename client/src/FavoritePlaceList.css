@@ -35,3 +35,22 @@
   border-color: #36A2EB;
   transition: 0.2s;          /* 0.2秒かけてふわっと色を変える */
 }
+
+.delete-button {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid #e74c3c;
+  background-color: #efefef;
+  color: #e74c3c;
+  box-sizing: border-box;
+}
+
+.delete-button:hover {
+  background-color: #e74c3c;
+  color: white;
+  border-color: #e74c3c;
+  transition: 0.2s;
+}

@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS favorite_places (
   latitude DOUBLE PRECISION NOT NULL, -- 緯度
   longitude DOUBLE PRECISION NOT NULL, -- 経度
   wave_cache JSONB, -- 生データ
-  updated_at TIMESTAMP --キャッシュ日付
+  updated_at TIMESTAMP, --キャッシュ日付
   
   -- user_loginテーブルのidと紐付け。ユーザーが削除されたらお気に入りも消す
   CONSTRAINT fk_user
