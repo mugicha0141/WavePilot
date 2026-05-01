@@ -172,10 +172,11 @@ docker exec -it wave_postgres psql -U user -d wave_db
 Ctrl + C
 
 # コンテナ停止・削除
-docker-compose down
+docker-compose down -v
 ```
 
 ### セキュリティ上の注意
 
 - パスワードは現在 **平文保存** です。本番運用前に bcrypt 等でハッシュ化してください。
 - Stormglass API キーは `.env` に記載し、**絶対に Git にコミットしないでください**（`.gitignore` 設定済み）。
+
