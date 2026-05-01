@@ -4,7 +4,7 @@ const FetchWaveData = async (lat, lng) => {
     const data = await response.json();
     return { data };
   } catch (error) {
-    console.error("データ取得エラー:", error);
+    console.error("[Client] データ取得エラー:", error);
     return null;
   }
 };

@@ -1,39 +1,68 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Chart } from "chart.js/auto";
-import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import FetchWaveData from "./FetchWaveData";
 import SaveDataCache from "./utils/SaveDataCache";
 
 const FavoritePlaceWaveChart = ({ currentUser }) => {
-  const [selectedDays, setSelectedDays] = useState(2);
+  const [selectedDays, setSelectedDays] = useState(3);
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
   const routeLocation = useLocation();
   const navigate = useNavigate();
   const { location: coord, name, wave_cache } = routeLocation.state || {};
-  const [chartData, setChartData] = useState(
-    wave_cache ? JSON.parse(wave_cache) : null,
-  );
+  const [rawData, setRawData] = useState(wave_cache || null);
+  const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // rawDataまたはselectedDaysが変わったら表示を更新
+  useEffect(() => {
+    if (rawData) {
+      updateView(rawData, selectedDays);
+    }
+  }, [rawData, selectedDays]);
+
+  // chartDataが変わったらChart.jsで描画
+  useEffect(() => {
+    if (!chartData || !chartRef.current) return;
+
+    const ctx = chartRef.current.getContext("2d");
+
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    chartInstance.current = new Chart(ctx, {
+      type: "line",
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { ticks: { autoSkip: true, maxTicksLimit: 12 } },
+          y: { beginAtZero: true },
+        },
+        layout: { padding: { left: 10, right: 20, top: 10, bottom: 10 } },
+      },
+    });
+
+    return () => chartInstance.current?.destroy();
+  }, [chartData]);
 
   // 更新ボタン
   const handleRefresh = async () => {
     if (!coord) return;
 
     const isConfirmed = window.confirm("最新データに更新しますか？");
-    if (!isConfirmed) {
-      return;
-    }
+    if (!isConfirmed) return;
+
     setLoading(true);
     try {
-      console.log(`${name} の最新データを取得します...`);
-      // 外部の FetchWaveData に座標を渡して最新取得
       const res = await FetchWaveData(coord.lat, coord.lng);
       if (res && res.data && res.data.hours) {
-        const rawData = res.data.hours;
-        updateView(res.data.hours, selectedDays);
-        await SaveDataCache(currentUser.id, coord, rawData);
+        const hours = res.data.hours;
+        setRawData(hours);
+        await SaveDataCache(currentUser.id, coord, hours);
         alert("最新の波情報を取得しました！");
       }
     } catch (error) {
@@ -44,13 +73,12 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
     }
   };
 
-  // 表示切替(3days or 1 week)
+  // 表示切替
   const updateView = (data, days) => {
     if (!data || data.length === 0) return;
-    // 指定日数分切り出し
+
     let filtered = data.slice(0, days * 24);
 
-    // 1週間（7日）の場合は3時間おきに間引く
     if (days === 7) {
       filtered = filtered.filter((_, i) => i % 3 === 0);
     }
@@ -61,14 +89,14 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
     });
 
     const heights = filtered.map(
-      (h) => h.waveHeight.noaa || h.waveHeight.sg || 0,
+      (h) => h.waveHeight?.noaa || h.waveHeight?.sg || 0,
     );
 
     setChartData({
-      labels: labels,
+      labels,
       datasets: [
         {
-          label: `波高 (m)' - ${days === 3 ? "3日間" : "1週間"}`,
+          label: `波高 (m) - ${days === 7 ? "1週間" : `${days}日間`}`,
           data: heights,
           borderColor: "rgb(75, 192, 192)",
           backgroundColor: "rgba(75, 192, 192, 0.2)",
@@ -78,8 +106,6 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
       ],
     });
   };
-
-  console.log(`${name}のグラフを表示します`, coord);
 
   return (
     <div
@@ -93,19 +119,6 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
       <h2 style={{ fontSize: "1.2rem", marginBottom: "15px" }}>
         {name} 波情報予測
       </h2>
-      {chartData ? (
-        <>
-          {/* キャッシュまたは取得済みデータがある場合：グラフを表示 */}
-          <div className="graph-container">
-            <canvas ref={chartRef}></canvas>
-          </div>
-        </>
-      ) : (
-        /* データがない場合：更新ボタンのみを表示 */
-        <div className="no-data-placeholder">
-          <p>保存されたデータがありません。</p>
-        </div>
-      )}
       <div
         style={{
           display: "flex",
@@ -134,12 +147,13 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
 
         <button
           onClick={handleRefresh}
+          disabled={loading}
           style={{
             height: "32px",
             width: "auto",
             padding: "0 12px",
             fontSize: "0.8rem",
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
             borderRadius: "4px",
             border: "1px solid #ccc",
             boxSizing: "border-box",
@@ -151,22 +165,40 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
             lineHeight: "1",
           }}
         >
-          更新
+          {loading ? "取得中..." : "更新"}
         </button>
       </div>
 
-      <div
-        style={{
-          position: "relative",
-          height: "500px",
-          width: "100%",
-          backgroundColor: "#f9f9f9",
-          borderRadius: "8px",
-          padding: "10px",
-          boxSizing: "border-box",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-        }}
-      ></div>
+      {rawData ? (
+        <div
+          style={{
+            position: "relative",
+            height: "500px",
+            width: "100%",
+            backgroundColor: "#f9f9f9",
+            borderRadius: "8px",
+            padding: "10px",
+            boxSizing: "border-box",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+          }}
+        >
+          <canvas ref={chartRef}></canvas>
+        </div>
+      ) : (
+        <div
+          style={{
+            height: "200px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#f9f9f9",
+            borderRadius: "8px",
+          }}
+        >
+          <p style={{ color: "#666" }}>保存されたデータがありません。</p>
+        </div>
+      )}
+
       <div style={{ marginTop: "30px", textAlign: "center" }}>
         <button
           onClick={() => navigate(-1)}

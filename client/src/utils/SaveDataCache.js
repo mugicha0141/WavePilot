@@ -13,12 +13,12 @@ const SaveWaveCache = async (userId, coord, rawData) => {
       user_id: userId,
       latitude: coord.lat,
       longitude: coord.lng,
-      wave_cache: JSON.stringify(rawData), // JSON文字列にして保存
+      wave_cache: rawData,
       updated_at: new Date().toISOString(),
     });
     return response.data;
   } catch (error) {
-    console.error("キャッシュの保存に失敗しました:", error);
+    console.error("[Client] キャッシュの保存に失敗しました:", error);
     throw error;
   }
 };

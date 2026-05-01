@@ -2,7 +2,7 @@ import React from "react";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
-const Home = () => {
+const Home = ({ currentUser }) => {
   const navigate = useNavigate();
   return (
     <div className="homeContainer">
@@ -10,7 +10,9 @@ const Home = () => {
         <div className="button-grid">
           <button
             className="FavoritePlaceList-button"
-            onClick={() => navigate("/FavoritePlaceList")}
+            onClick={() =>
+              navigate(`/user/${currentUser.id}/FavoritePlaceList`)
+            }
           >
             FavoritePlace
           </button>

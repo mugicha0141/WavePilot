@@ -18,27 +18,27 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const [rawWaveData, setRawWaveData] = useState(null);
 
   const handleSaveFavorite = async () => {
-    console.log("currentUserの実体:", currentUser);
+    console.log("[Client] currentUserの実体:", currentUser);
     // ログインチェック
     if (!currentUser) {
-      console.log("currentUserが空です");
+      console.log("[Client] currentUserが空です");
       alert(
         "ログイン情報が見つかりません。一度ログアウトして再ログインしてください。",
       );
       return;
     }
-    console.log("DEBUG: currentUserの実体:", currentUser);
-    console.log("DEBUG: user_id:", currentUser.id);
+    console.log("[Client] DEBUG: currentUserの実体:", currentUser);
+    console.log("[Client] DEBUG: user_id:", currentUser.id);
     // 登録データ
     const favoriteData = {
       user_id: currentUser.id,
       point_name: pointName,
       latitude: displayInfo.lat,
       longitude: displayInfo.lng,
-      wave_cache: JSON.stringify(rawWaveData),
+      wave_cache: rawWaveData,
     };
 
-    console.log("IDプロパティの確認:", currentUser.id);
+    console.log("[Client] IDプロパティの確認:", currentUser.id);
 
     try {
       const response = await fetch(`/api/favorites/`, {
@@ -59,7 +59,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
         alert("登録に失敗しました: " + result.message);
       }
     } catch (error) {
-      console.error("通信エラー:", error);
+      console.error("[Client] 通信エラー:", error);
       alert("サーバーとの通信に失敗しました。");
     }
   };
@@ -76,7 +76,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
     const GetWaveData = async () => {
       setLoading(true);
       try {
-        console.log(`${location.lat}, ${location.lng} の波データを取得中...`);
+        console.log(`[Client] ${location.lat}, ${location.lng} の波データを取得中...`);
         const res = await FetchWaveData(location.lat, location.lng);
         if (res && res.data && res.data.hours) {
           // 生データキャッシュ
@@ -87,7 +87,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
         }
         setDisplayInfo(location);
       } catch (error) {
-        console.error("データ取得失敗", error);
+        console.error("[Client] データ取得失敗", error);
       } finally {
         setLoading(false);
       }
@@ -98,7 +98,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   //【表示更新用】days または rawWaveData が変わった時にグラフを再構成する
   useEffect(() => {
     if (rawWaveData) {
-      console.log("キャッシュから表示期間を更新:", days, "日間");
+      console.log("[Client] キャッシュから表示期間を更新:", days, "日間");
       updateGraph(rawWaveData, days);
     }
   }, [days, rawWaveData]);
@@ -161,6 +161,20 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
         <p style={{ textAlign: "center", marginTop: "50px", color: "#666" }}>
           🌊 地図上の地点をクリックして波予報を表示してください
         </p>
+        <Link
+          to="/Home"
+          style={{
+            color: "#007bff",
+            cursor: "pointer",
+            width: "fit-content",
+            marginTop: "auto",
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "5px 10px",
+          }}
+        >
+          ← 🏠 ホームへ戻る
+        </Link>
       </div>
     );
   }
@@ -249,13 +263,18 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
         <Link
           to="/Home"
           style={{
-            fontSize: "0.85rem",
-            color: "#36A2EB",
-            textDecoration: "none",
-            fontWeight: "bold",
+            background: "none",
+            border: "none",
+            color: "#007bff",
+            cursor: "pointer",
+            width: "fit-content",
+            marginTop: "auto",
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "5px 10px",
           }}
         >
-          🏠 ホームへ戻る
+          ← 🏠 ホームへ戻る
         </Link>
       </div>
       {/* お気に入り登録モーダル */}

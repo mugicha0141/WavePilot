@@ -59,10 +59,16 @@ function App() {
         <Route path="/" element={<Login onLogin={handleLogin} />} />
         <Route
           path="/Home"
-          element={isLoggedIn ? <Home /> : <Login onLogin={handleLogin} />}
+          element={
+            isLoggedIn ? (
+              <Home currentUser={currentUser} />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
         />
         <Route
-          path="/FavoritePlaceList"
+          path="/user/:userId/FavoritePlaceList"
           element={
             isLoggedIn ? (
               <FavoritePlaceList currentUser={currentUser} />
@@ -72,7 +78,7 @@ function App() {
           }
         />
         <Route
-          path="/FavoritePlaceWaveChart"
+          path="/user/:userId/FavoritePlaceList/:placeId/"
           element={
             isLoggedIn ? (
               <FavoritePlaceWaveChart currentUser={currentUser} />

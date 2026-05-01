@@ -12,7 +12,7 @@ function Login({ onLogin }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormValues({ ...formValues, [name]: value });
-    console.log(formValues);
+    console.log("[Client]", formValues);
   };
 
   const handleSubmit = async (e) => {
@@ -24,7 +24,7 @@ function Login({ onLogin }) {
     setIsSubmit(true);
 
     try {
-      console.log("送信するデータ:", formValues);
+      console.log("[Client] 送信するデータ:", formValues);
       const response = await fetch("http://localhost:8080/server", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,7 +40,7 @@ function Login({ onLogin }) {
         alert(data.message); // 失敗のメッセージを表示
       }
     } catch (error) {
-      console.error("ログインエラー:", error);
+      console.error("[Client] ログインエラー:", error);
     }
   };
 
