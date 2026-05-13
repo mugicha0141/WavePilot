@@ -20,6 +20,17 @@
   margin-left: 10px;
 }
 
+@media (max-width: 600px) {
+  .logo {
+    font-size: 28px;
+  }
+
+  .header-container {
+    height: 56px;
+    padding: 0 12px;
+  }
+}
+
 .user-container {
   display: flex;
   justify-content: flex-start; /* 左寄せ */
