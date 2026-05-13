@@ -9,6 +9,10 @@
   },
   "scripts": {
     "install-all": "npm install && npm install --prefix server && npm install --prefix client",
-    "start": "concurrently \"npm start --prefix server\" \"npm start --prefix client\""
+    "start": "concurrently \"npm start --prefix server\" \"npm start --prefix client\"",
+    "build": "npm run build --prefix client",
+    "build:server": "echo 'No build step required for server.js'", 
+    
+    "deploy:local": "npm run build && docker-compose exec -T localstack awslocal s3 sync /workspace/client/build s3://wave-app-local-static --region ap-northeast-1"
   }
 }

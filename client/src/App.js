@@ -25,7 +25,7 @@ function App() {
       setCurrentUser({ id: storedUserId, user_name: storedUsername });
     } else {
       // ログインしていない場合、強制的にログイン画面に遷移
-      if (location.pathname !== "/") {
+      if (location.pathname !== "/" && location.pathname !== "") {
         navigate("/", { replace: true }); // replace: trueで履歴を上書き
       }
     }
@@ -57,6 +57,7 @@ function App() {
       )}
       <Routes>
         <Route path="/" element={<Login onLogin={handleLogin} />} />
+        <Route path="/index.html" element={<Login onLogin={handleLogin} />} />
         <Route
           path="/Home"
           element={

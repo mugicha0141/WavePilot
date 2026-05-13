@@ -1,4 +1,5 @@
 import axios from "axios";
+import API_BASE_URL from "../config";
 
 /**
  * 波の生データをデータベースにキャッシュする関数
@@ -9,7 +10,7 @@ import axios from "axios";
 
 const SaveWaveCache = async (userId, coord, rawData) => {
   try {
-    const response = await axios.put("/api/favorites/cache", {
+    const response = await axios.put(`${API_BASE_URL}/api/favorites/cache`, {
       user_id: userId,
       latitude: coord.lat,
       longitude: coord.lng,

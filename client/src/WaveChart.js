@@ -3,6 +3,7 @@ import { Chart } from "chart.js/auto";
 import { Link } from "react-router-dom";
 import "./WaveChart.css";
 import FetchWaveData from "./FetchWaveData";
+import API_BASE_URL from "./config";
 
 const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const [loading, setLoading] = useState(false);
@@ -41,7 +42,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
     console.log("[Client] IDプロパティの確認:", currentUser.id);
 
     try {
-      const response = await fetch(`/api/favorites/`, {
+      const response = await fetch(`${API_BASE_URL}/api/favorites`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +77,9 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
     const GetWaveData = async () => {
       setLoading(true);
       try {
-        console.log(`[Client] ${location.lat}, ${location.lng} の波データを取得中...`);
+        console.log(
+          `[Client] ${location.lat}, ${location.lng} の波データを取得中...`,
+        );
         const res = await FetchWaveData(location.lat, location.lng);
         if (res && res.data && res.data.hours) {
           // 生データキャッシュ

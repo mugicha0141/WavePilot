@@ -39,7 +39,7 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          x: { ticks: { autoSkip: true, maxTicksLimit: 12 } },
+          x: { ticks: { autoSkip: true, maxTicksLimit: selectedDays === 7 ? 28 : 12 } },
           y: { beginAtZero: true },
         },
         layout: { padding: { left: 10, right: 20, top: 10, bottom: 10 } },
@@ -89,7 +89,7 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
     });
 
     const heights = filtered.map(
-      (h) => h.waveHeight?.noaa || h.waveHeight?.sg || 0,
+      (h) => h.waveHeight?.sg || h.waveHeight?.noaa || 0,
     );
 
     setChartData({
@@ -209,7 +209,7 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
             cursor: "pointer",
           }}
         >
-          ← 戻る
+          ← お気に入りリストに戻る
         </button>
       </div>
     </div>
