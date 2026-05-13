@@ -20,3 +20,10 @@ body {
   height: 100%;
   overflow: hidden;
 }
+
+@media (max-width: 600px) {
+  html,
+  body {
+    overflow: auto;
+  }
+}

@@ -101,3 +101,18 @@
   background-size: contain;
   color: white;
 }
+
+@media (max-width: 600px) {
+  .button-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .WaveMap-button,
+  .FavoritePlaceList-button,
+  .button3,
+  .button4 {
+    width: 85vw;
+    height: 120px;
+    font-size: 24px;
+  }
+}
