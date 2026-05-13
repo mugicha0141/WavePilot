@@ -13,3 +13,17 @@
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   z-index: 1;
 }
+
+@media (max-width: 600px) {
+  .wave-dashboard {
+    flex-direction: column;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .map-section {
+    height: 40vh;
+    border-right: none;
+    border-bottom: 2px solid #dee2e6;
+  }
+}
