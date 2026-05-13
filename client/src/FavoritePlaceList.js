@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./FavoritePlaceList.css";
+import API_BASE_URL from "./config";
 
 function FavoritePlaceList({ currentUser }) {
   const navigate = useNavigate();
@@ -19,7 +20,10 @@ function FavoritePlaceList({ currentUser }) {
 
     const fetchFavorites = async () => {
       try {
-        const response = await fetch(`/api/favorites/${currentUser.id}`);
+        const response = await fetch(
+          `${API_BASE_URL}/api/favorites/${currentUser.id}`,
+        );
+
         if (!response.ok) throw new Error("データ取得に失敗しました");
         const data = await response.json();
         setFavorites(data);
@@ -48,6 +52,7 @@ function FavoritePlaceList({ currentUser }) {
       `/user/${currentUser.id}/FavoritePlaceList/${point.id}?lat=${point.latitude}&lng=${point.longitude}`,
       {
         state: {
+          id: point.id,
           location: { lat: point.latitude, lng: point.longitude },
           name: point.point_name,
           wave_cache: point.wave_cache,
@@ -59,11 +64,14 @@ function FavoritePlaceList({ currentUser }) {
   const handleUpdate = async () => {
     if (!selectedItem?.id) return;
     try {
-      const res = await fetch(`/api/favorites/${selectedItem.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ point_name: editPointName }),
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/api/favorites/${selectedItem.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ point_name: editPointName }),
+        },
+      );
       const result = await res.json();
       if (result.success) {
         setFavorites(
@@ -82,9 +90,12 @@ function FavoritePlaceList({ currentUser }) {
   const handleDelete = async () => {
     if (!selectedItem?.id) return;
     try {
-      const res = await fetch(`/api/favorites/${selectedItem.id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/api/favorites/${selectedItem.id}`,
+        {
+          method: "DELETE",
+        },
+      );
       if (res.ok) {
         setFavorites(favorites.filter((f) => f.id !== selectedItem.id));
         setSelectedItem(null);

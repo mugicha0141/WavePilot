@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "./LoginForm";
+import API_BASE_URL from "./config";
 
 function Login({ onLogin }) {
   const initialValues = { user_name: "", user_password: "" };
@@ -25,11 +26,14 @@ function Login({ onLogin }) {
 
     try {
       console.log("[Client] 送信するデータ:", formValues);
-      const response = await fetch("http://localhost:8080/server", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formValues),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formValues),
+        },
+      );
 
       const data = await response.json();
       if (data.success) {

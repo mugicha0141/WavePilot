@@ -1,18 +1,59 @@
 services:
-  db:
-    image: postgres:15
+  # db:
+  #   image: postgres:15
+  #   platform: linux/arm64
+  #   container_name: wave_postgres
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: wave_db
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - db_data:/var/lib/postgresql/data
+
+  # server:
+  #   build: ./server  # サーバーのソースコードがあるディレクトリを指定
+  #   container_name: wave_backend
+  #   ports:
+  #     - "8080:8080"  # ブラウザ(Login.js)が叩きにくるポートを開放
+  #   environment:
+  #     - DYNAMODB_ENDPOINT=http://wave_localstack:4566
+  #     - AWS_REGION=ap-northeast-1
+  #     - AWS_ACCESS_KEY_ID=test
+  #     - AWS_SECRET_ACCESS_KEY=test
+  #   depends_on:
+  #     - localstack
+
+  localstack:
+    image: localstack/localstack:3.4.0
     platform: linux/arm64
-    container_name: wave_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: wave_db
+    container_name: wave_localstack
     ports:
-      - "5432:5432"
+      - "4566:4566"
+    environment:
+      SERVICES: s3,dynamodb,lambda,iam,ssm,apigateway
+      DEFAULT_REGION: ap-northeast-1
+      AWS_DEFAULT_REGION: ap-northeast-1
+      ACTIVATE_PRO: "0"
     volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - .:/workspace
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  terraform:
+    image: hashicorp/terraform:latest
+    platform: linux/arm64
+    container_name: wave_terraform
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/terraform
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=ap-northeast-1
+    depends_on:
+      - localstack
 
 volumes:
   db_data:
