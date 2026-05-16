@@ -18,6 +18,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pointName, setPointName] = useState("");
   const [rawWaveData, setRawWaveData] = useState(null);
+  const [rateLimit, setRateLimit] = useState(null);
 
   const handleSaveFavorite = async () => {
     console.log("[Client] currentUserの実体:", currentUser);
@@ -85,6 +86,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
         if (res && res.data && res.data.hours) {
           // 生データキャッシュ
           setRawWaveData(res.data.hours);
+          setRateLimit(res.data.rateLimit);
           const rawHours = res.data.hours;
           // 取得直後の描画
           updateGraph(rawHours, days);
@@ -230,6 +232,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
             color: "#444",
             display: "flex",
             alignItems: "center",
+            flexWrap: "wrap",
             gap: "10px",
           }}
         >
@@ -264,6 +267,11 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
         <p className="hint-text">
           ※地図をクリックするとその地点の波高グラフに更新されます。
         </p>
+        {rateLimit && (
+          <p className="hint-text">
+            本日の残りリクエスト: {rateLimit.remaining} / {rateLimit.limit}
+          </p>
+        )}
         <Link
           to="/Home"
           style={{
