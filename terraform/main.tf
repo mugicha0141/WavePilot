@@ -144,6 +144,10 @@ data "aws_ssm_parameter" "stormglass_key" {
   name = "/wave-app/stormglass-api-key"
 }
 
+data "aws_ssm_parameter" "jwt_secret" {
+  name = "/wave-app/jwt-secret"
+}
+
 # ── Lambda ───────────────────────────────────────────────────────
 resource "aws_lambda_function" "wave_app_backend" {
   function_name    = "wave-app-backend"
@@ -156,6 +160,7 @@ resource "aws_lambda_function" "wave_app_backend" {
   environment {
     variables = {
       STORMGLASS_API_KEY = data.aws_ssm_parameter.stormglass_key.value
+      JWT_SECRET         = data.aws_ssm_parameter.jwt_secret.value
     }
   }
 }
