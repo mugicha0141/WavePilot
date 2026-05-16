@@ -206,10 +206,10 @@ seed_db() {
     --region ap-northeast-1 \
     --item '{
       "id":            {"N": "1"},
-      "user_name":     {"S": "taku"},
+      "user_name":     {"S": "test"},
       "user_password": {"S": "password123"}
     }'
-  ok "テストユーザーを登録しました（user_name: taku / user_password: password123）"
+  ok "テストユーザーを登録しました（user_name: test / user_password: password123）"
 }
 
 print_url() {
