@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "./LoginForm";
-import API_BASE_URL from "./config";
+import API_BASE_URL from "../config";
 
 function Login({ onLogin }) {
   const initialValues = { user_name: "", user_password: "" };
