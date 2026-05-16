@@ -12,7 +12,7 @@ function Header({ username, onLogout }) {
 
   return (
     <div className="header-container">
-      <div className="logo">WAVE Information</div>
+      <div className="logo">WavePilot</div>
       <div className="user-container">
         <div className="user-info">
           ユーザ: {username}

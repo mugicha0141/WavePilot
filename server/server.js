@@ -21,14 +21,14 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // JWT 認証ミドルウェア（/api/* の全ルートに適用）
-app.use('/api', (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: '認証が必要です' });
+app.use("/api", (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "認証が必要です" });
   try {
     jwt.verify(token, JWT_SECRET);
     next();
   } catch {
-    return res.status(401).json({ error: 'トークンが無効です' });
+    return res.status(401).json({ error: "トークンが無効です" });
   }
 });
 
@@ -63,16 +63,20 @@ app.post("/login", async (req, res) => {
   console.log("[Server] 入力されたパスワード:", user_password);
 
   try {
-    const { Items } = await docClient.send(new ScanCommand({
-      TableName: "user_login",
-      FilterExpression: "user_name = :un",
-      ExpressionAttributeValues: { ":un": user_name },
-    }));
+    const { Items } = await docClient.send(
+      new ScanCommand({
+        TableName: "user_login",
+        FilterExpression: "user_name = :un",
+        ExpressionAttributeValues: { ":un": user_name },
+      }),
+    );
     const Item = Items?.[0];
 
     if (Item && Item.user_password === user_password) {
       console.log("[Server] ログイン成功:", Item);
-      const token = jwt.sign({ userId: Item.id }, JWT_SECRET, { expiresIn: '24h' });
+      const token = jwt.sign({ userId: Item.id }, JWT_SECRET, {
+        expiresIn: "24h",
+      });
       res.json({
         success: true,
         message: "ログイン成功！",
@@ -118,7 +122,17 @@ app.get("/api/wave-data", async (req, res) => {
       },
     );
 
-    res.json(response.data);
+    // metaData 取得ログ
+    console.log("[Server] Stormglass meta:", response.data.meta);
+
+    res.json({
+      ...response.data,
+      rateLimit: {
+        remaining:
+          response.data.meta.dailyQuota - response.data.meta.requestCount,
+        limit: response.data.meta.dailyQuota,
+      },
+    });
   } catch (error) {
     console.error("[Server] API Error:", error.response?.data || error.message);
     res.status(500).json({ error: "Stormglassからのデータ取得に失敗しました" });
@@ -190,15 +204,17 @@ app.put("/api/favorites/cache", async (req, res) => {
     const { user_id, latitude, longitude, wave_cache } = req.body;
 
     // user_id-index で該当ユーザーのお気に入りを取得し、座標で絞り込む
-    const { Items } = await docClient.send(new QueryCommand({
-      TableName: "favorite_places",
-      IndexName: "user_id-index",
-      KeyConditionExpression: "user_id = :uid",
-      ExpressionAttributeValues: { ":uid": Number(user_id) },
-    }));
+    const { Items } = await docClient.send(
+      new QueryCommand({
+        TableName: "favorite_places",
+        IndexName: "user_id-index",
+        KeyConditionExpression: "user_id = :uid",
+        ExpressionAttributeValues: { ":uid": Number(user_id) },
+      }),
+    );
 
     const target = Items?.find(
-      (item) => item.latitude === latitude && item.longitude === longitude
+      (item) => item.latitude === latitude && item.longitude === longitude,
     );
 
     if (!target) {
@@ -208,16 +224,18 @@ app.put("/api/favorites/cache", async (req, res) => {
       });
     }
 
-    const result = await docClient.send(new UpdateCommand({
-      TableName: "favorite_places",
-      Key: { id: target.id },
-      UpdateExpression: "set wave_cache = :wc, updated_at = :ua",
-      ExpressionAttributeValues: {
-        ":wc": wave_cache,
-        ":ua": new Date().toISOString(),
-      },
-      ReturnValues: "ALL_NEW",
-    }));
+    const result = await docClient.send(
+      new UpdateCommand({
+        TableName: "favorite_places",
+        Key: { id: target.id },
+        UpdateExpression: "set wave_cache = :wc, updated_at = :ua",
+        ExpressionAttributeValues: {
+          ":wc": wave_cache,
+          ":ua": new Date().toISOString(),
+        },
+        ReturnValues: "ALL_NEW",
+      }),
+    );
 
     res.json({ success: true, data: result.Attributes });
   } catch (err) {

@@ -11,7 +11,7 @@ function LoginForm({
   return (
     <div className="formContainer">
       <form onSubmit={(e) => handleSubmit(e)}>
-        <h1>WAVE Information</h1>
+        <h1>WavePilot</h1>
         <hr />
         <div className="uiForm">
           <div className="formField">
