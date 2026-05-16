@@ -10,12 +10,15 @@ import API_BASE_URL from "../config";
 
 const SaveWaveCache = async (userId, coord, rawData) => {
   try {
+    const token = localStorage.getItem('token');
     const response = await axios.put(`${API_BASE_URL}/api/favorites/cache`, {
       user_id: userId,
       latitude: coord.lat,
       longitude: coord.lng,
       wave_cache: rawData,
       updated_at: new Date().toISOString(),
+    }, {
+      headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
   } catch (error) {

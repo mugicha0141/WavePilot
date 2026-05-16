@@ -1,9 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-//const { Pool } = require("pg");
 require("dotenv").config();
 const axios = require("axios");
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = process.env.JWT_SECRET;
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
 const {
@@ -18,6 +19,18 @@ const app = express();
 // CORS & JSONのデータ受信を許可
 app.use(cors());
 app.use(bodyParser.json());
+
+// JWT 認証ミドルウェア（/api/* の全ルートに適用）
+app.use('/api', (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: '認証が必要です' });
+  try {
+    jwt.verify(token, JWT_SECRET);
+    next();
+  } catch {
+    return res.status(401).json({ error: 'トークンが無効です' });
+  }
+});
 
 // const pool = new Pool({
 //   user: process.env.DB_USER,
@@ -59,11 +72,13 @@ app.post("/login", async (req, res) => {
 
     if (Item && Item.user_password === user_password) {
       console.log("[Server] ログイン成功:", Item);
+      const token = jwt.sign({ userId: Item.id }, JWT_SECRET, { expiresIn: '24h' });
       res.json({
         success: true,
         message: "ログイン成功！",
         id: Item.id,
         user_name: Item.user_name,
+        token,
       });
     } else {
       res.status(401).json({

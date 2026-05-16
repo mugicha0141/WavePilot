@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./FavoritePlaceList.css";
 import API_BASE_URL from "./config";
+import authFetch from "./utils/authFetch";
 
 function FavoritePlaceList({ currentUser }) {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ function FavoritePlaceList({ currentUser }) {
 
     const fetchFavorites = async () => {
       try {
-        const response = await fetch(
+        const response = await authFetch(
           `${API_BASE_URL}/api/favorites/${currentUser.id}`,
         );
 
@@ -64,7 +65,7 @@ function FavoritePlaceList({ currentUser }) {
   const handleUpdate = async () => {
     if (!selectedItem?.id) return;
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `${API_BASE_URL}/api/favorites/${selectedItem.id}`,
         {
           method: "PATCH",
@@ -90,7 +91,7 @@ function FavoritePlaceList({ currentUser }) {
   const handleDelete = async () => {
     if (!selectedItem?.id) return;
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `${API_BASE_URL}/api/favorites/${selectedItem.id}`,
         {
           method: "DELETE",

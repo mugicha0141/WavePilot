@@ -1,8 +1,9 @@
 import API_BASE_URL from "./config";
+import authFetch from "./utils/authFetch";
 
 const FetchWaveData = async (lat, lng) => {
   try {
-    const response = await fetch(
+    const response = await authFetch(
       `${API_BASE_URL}/api/wave-data?lat=${lat}&lng=${lng}`,
     );
     const data = await response.json();

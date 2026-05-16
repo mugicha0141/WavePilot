@@ -37,7 +37,7 @@ function Login({ onLogin }) {
 
       const data = await response.json();
       if (data.success) {
-        //alert(data.message); // 成功のメッセージを表示
+        localStorage.setItem('token', data.token);
         onLogin({ id: data.id, user_name: data.user_name });
         navigate("/home");
       } else {
