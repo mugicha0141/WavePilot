@@ -102,14 +102,14 @@ React + Node.js + DynamoDB で構築したサーファー向け波情報ダッ�
 
 ### アプリ画面
 #### ホーム画面
-<img width="1144" height="832" alt="Image" src="https://github.com/user-attachments/assets/778ef166-ce67-409c-806d-8fa67e9d3de6" />
+<img width="1136" height="798" alt="Image" src="https://github.com/user-attachments/assets/ca20a0e0-9beb-4cb4-8907-58d4ea8a0a04" />
 
 #### 波マップ画面
 
 #### お気に入り一覧画面
 <img width="1139" height="415" alt="Image" src="https://github.com/user-attachments/assets/9803d871-05a3-4a6e-8b1c-6effb091d20b" />
 
-#### お気に入りポイント波情報
+#### お気に入りポイント波情報画面
 <img width="1137" height="804" alt="Image" src="https://github.com/user-attachments/assets/c7e5b23c-232a-4b34-998a-a5986cf8e808" />
 
 ---
