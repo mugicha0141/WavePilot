@@ -1,5 +1,5 @@
-import API_BASE_URL from "./config";
-import authFetch from "./utils/authFetch";
+import API_BASE_URL from "../config";
+import authFetch from "./authFetch";
 
 const FetchWaveData = async (lat, lng) => {
   try {

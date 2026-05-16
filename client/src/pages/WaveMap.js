@@ -9,7 +9,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "./WaveMap.css";
-import WaveChart from "./WaveChart";
+import WaveChart from "../components/WaveChart";
 
 // マーカーのアイコン化けを防ぐ設定（Leafletのデフォルト設定）
 delete L.Icon.Default.prototype._getIconUrl;
