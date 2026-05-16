@@ -41,7 +41,7 @@
   text-align: center;
   width: 500px;
   height: 200px;
-  background-image: url("../public/img/WaveButton.jpg");
+  background-image: url("../../public/img/WaveButton.jpg");
   background-position: center;
   background-repeat: no-repeat;
   color: black;
@@ -62,7 +62,7 @@
   text-align: center;
   width: 500px;
   height: 200px;
-  background-image: url("../public/img/WaveMap.jpg");
+  background-image: url("../../public/img/WaveMap.jpg");
   background-position: center;
   background-repeat: no-repeat;
   color: black;
@@ -78,7 +78,7 @@
   text-align: center;
   width: 500px;
   height: 200px;
-  background-image: url("../public/img/ConstructionImage.jpg");
+  background-image: url("../../public/img/ConstructionImage.jpg");
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -95,7 +95,7 @@
   text-align: center;
   width: 500px;
   height: 200px;
- background-image: url("../public/img/ConstructionImage.jpg");
+ background-image: url("../../public/img/ConstructionImage.jpg");
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;

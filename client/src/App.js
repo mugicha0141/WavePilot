@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import Login from "./Login";
-import Home from "./Home";
-import Header from "./Header";
-import FavoritePlaceList from "./FavoritePlaceList";
-import FavoritePlaceWaveChart from "./FavoritePlaceWaveChart";
-import WaveMap from "./WaveMap";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import Header from "./components/Header";
+import FavoritePlaceList from "./pages/FavoritePlaceList";
+import FavoritePlaceWaveChart from "./pages/FavoritePlaceWaveChart";
+import WaveMap from "./pages/WaveMap";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
