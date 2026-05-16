@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { Chart } from "chart.js/auto";
 import { Link } from "react-router-dom";
 import "./WaveChart.css";
-import FetchWaveData from "./FetchWaveData";
-import API_BASE_URL from "./config";
-import authFetch from "./utils/authFetch";
+import FetchWaveData from "../utils/FetchWaveData";
+import API_BASE_URL from "../config";
+import authFetch from "../utils/authFetch";
 
 const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const [loading, setLoading] = useState(false);

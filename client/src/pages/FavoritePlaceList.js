@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./FavoritePlaceList.css";
-import API_BASE_URL from "./config";
-import authFetch from "./utils/authFetch";
+import API_BASE_URL from "../config";
+import authFetch from "../utils/authFetch";
 
 function FavoritePlaceList({ currentUser }) {
   const navigate = useNavigate();

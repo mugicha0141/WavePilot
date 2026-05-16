@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Chart } from "chart.js/auto";
 import { useNavigate, useLocation } from "react-router-dom";
-import FetchWaveData from "./FetchWaveData";
-import SaveDataCache from "./utils/SaveDataCache";
+import FetchWaveData from "../utils/FetchWaveData";
+import SaveDataCache from "../utils/SaveDataCache";
 
 const FavoritePlaceWaveChart = ({ currentUser }) => {
   const [selectedDays, setSelectedDays] = useState(3);
