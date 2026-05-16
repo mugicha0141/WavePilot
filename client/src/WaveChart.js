@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import "./WaveChart.css";
 import FetchWaveData from "./FetchWaveData";
 import API_BASE_URL from "./config";
+import authFetch from "./utils/authFetch";
 
 const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const [loading, setLoading] = useState(false);
@@ -42,7 +43,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
     console.log("[Client] IDプロパティの確認:", currentUser.id);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/favorites`, {
+      const response = await authFetch(`${API_BASE_URL}/api/favorites`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

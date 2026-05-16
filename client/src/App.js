@@ -47,6 +47,7 @@ function App() {
     setUsername("");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("username");
+    localStorage.removeItem("token");
     navigate("/", { replace: true }); // ログアウト後に履歴を置き換えてログイン画面へ遷移する
   };
 

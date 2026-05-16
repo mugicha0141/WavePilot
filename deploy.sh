@@ -101,12 +101,29 @@ setup_ssm() {
     error "STORMGLASS_API_KEY が見つかりません。"
   fi
 
+  if [ "$ENV" = "local" ]; then
+    JWT_SECRET_VAL=$(grep "^JWT_SECRET=" server/.env | cut -d= -f2-)
+  else
+    JWT_SECRET_VAL=$(grep "^JWT_SECRET=" .env.prod | cut -d= -f2-)
+  fi
+  if [ -z "$JWT_SECRET_VAL" ]; then
+    error "JWT_SECRET が見つかりません。"
+  fi
+
   awscli ssm put-parameter \
     --name "/wave-app/stormglass-api-key" \
     --value "$API_KEY" \
     --type SecureString \
     --overwrite \
     --region ap-northeast-1 > /dev/null
+
+  awscli ssm put-parameter \
+    --name "/wave-app/jwt-secret" \
+    --value "$JWT_SECRET_VAL" \
+    --type SecureString \
+    --overwrite \
+    --region ap-northeast-1 > /dev/null
+
   ok "SSM Parameter を設定しました"
 }
 
@@ -162,7 +179,7 @@ get_lambda_url() {
 build_frontend() {
   step "フロントエンドのビルド"
   get_lambda_url
-  REACT_APP_API_URL="$LAMBDA_URL" npm run build --prefix client
+  GENERATE_SOURCEMAP=false REACT_APP_API_URL="$LAMBDA_URL" npm run build --prefix client
   ok "ビルドが完了しました"
 }
 
