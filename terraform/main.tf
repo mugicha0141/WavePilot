@@ -129,13 +129,60 @@ resource "aws_dynamodb_table" "favorite_places" {
 
   attribute {
     name = "user_id"
-    type = "N"
+    type = "S"
   }
 
   global_secondary_index {
     name            = "user_id-index"
     hash_key        = "user_id"
     projection_type = "ALL"
+  }
+}
+
+# ── Cognito（本番のみ） ───────────────────────────────────────────
+resource "aws_cognito_user_pool" "main" {
+  count = var.environment == "prod" ? 1 : 0
+  name  = "wavepilot-user-pool"
+
+  password_policy {
+    minimum_length    = 8
+    require_uppercase = false
+    require_lowercase = false
+    require_numbers   = false
+    require_symbols   = false
+  }
+}
+
+resource "aws_cognito_user_pool_client" "main" {
+  count           = var.environment == "prod" ? 1 : 0
+  name            = "wavepilot-client"
+  user_pool_id    = aws_cognito_user_pool.main[0].id
+  generate_secret = false
+
+  explicit_auth_flows = [
+    "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_REFRESH_TOKEN_AUTH",
+  ]
+
+  access_token_validity  = 1
+  refresh_token_validity = 30
+
+  token_validity_units {
+    access_token  = "hours"
+    refresh_token = "days"
+  }
+}
+
+resource "aws_apigatewayv2_authorizer" "cognito" {
+  count            = var.environment == "prod" ? 1 : 0
+  api_id           = aws_apigatewayv2_api.wave_app.id
+  authorizer_type  = "JWT"
+  name             = "cognito-authorizer"
+  identity_sources = ["$request.header.Authorization"]
+
+  jwt_configuration {
+    audience = [aws_cognito_user_pool_client.main[0].id]
+    issuer   = "https://cognito-idp.ap-northeast-1.amazonaws.com/${aws_cognito_user_pool.main[0].id}"
   }
 }
 
@@ -194,9 +241,11 @@ resource "aws_apigatewayv2_integration" "wave_app" {
 }
 
 resource "aws_apigatewayv2_route" "wave_app" {
-  api_id    = aws_apigatewayv2_api.wave_app.id
-  route_key = "$default"
-  target    = "integrations/${aws_apigatewayv2_integration.wave_app.id}"
+  api_id             = aws_apigatewayv2_api.wave_app.id
+  route_key          = "$default"
+  target             = "integrations/${aws_apigatewayv2_integration.wave_app.id}"
+  authorization_type = var.environment == "prod" ? "JWT" : "NONE"
+  authorizer_id      = one(aws_apigatewayv2_authorizer.cognito[*].id)
 }
 
 resource "aws_lambda_permission" "api_gateway" {
@@ -278,4 +327,12 @@ output "s3_bucket_name" {
 
 output "s3_website_url" {
   value = var.environment == "local" ? "http://${aws_s3_bucket.wave_app_static.bucket}.s3-website.localhost.localstack.cloud:4566" : "https://${aws_cloudfront_distribution.wave_app[0].domain_name}"
+}
+
+output "cognito_user_pool_id" {
+  value = one(aws_cognito_user_pool.main[*].id)
+}
+
+output "cognito_client_id" {
+  value = one(aws_cognito_user_pool_client.main[*].id)
 }
