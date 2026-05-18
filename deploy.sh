@@ -101,15 +101,6 @@ setup_ssm() {
     error "STORMGLASS_API_KEY が見つかりません。"
   fi
 
-  if [ "$ENV" = "local" ]; then
-    JWT_SECRET_VAL=$(grep "^JWT_SECRET=" server/.env | cut -d= -f2-)
-  else
-    JWT_SECRET_VAL=$(grep "^JWT_SECRET=" .env.prod | cut -d= -f2-)
-  fi
-  if [ -z "$JWT_SECRET_VAL" ]; then
-    error "JWT_SECRET が見つかりません。"
-  fi
-
   awscli ssm put-parameter \
     --name "/wave-app/stormglass-api-key" \
     --value "$API_KEY" \
@@ -117,12 +108,19 @@ setup_ssm() {
     --overwrite \
     --region ap-northeast-1 > /dev/null
 
-  awscli ssm put-parameter \
-    --name "/wave-app/jwt-secret" \
-    --value "$JWT_SECRET_VAL" \
-    --type SecureString \
-    --overwrite \
-    --region ap-northeast-1 > /dev/null
+  # JWT_SECRET はローカル開発専用（本番は Cognito で認証するため不要）
+  if [ "$ENV" = "local" ]; then
+    JWT_SECRET_VAL=$(grep "^JWT_SECRET=" server/.env | cut -d= -f2-)
+    if [ -z "$JWT_SECRET_VAL" ]; then
+      error "JWT_SECRET が server/.env に見つかりません。"
+    fi
+    awscli ssm put-parameter \
+      --name "/wave-app/jwt-secret" \
+      --value "$JWT_SECRET_VAL" \
+      --type SecureString \
+      --overwrite \
+      --region ap-northeast-1 > /dev/null
+  fi
 
   ok "SSM Parameter を設定しました"
 }
@@ -141,6 +139,7 @@ build_backend() {
   step "バックエンド ZIP のビルド"
   cd server
   zip -r ../terraform/index.zip . --exclude "*.DS_Store" --exclude "*.map" > /dev/null
+  zip -d ../terraform/index.zip .env 2>/dev/null || true
   cd ..
   ok "terraform/index.zip を作成しました"
 }
@@ -179,7 +178,20 @@ get_lambda_url() {
 build_frontend() {
   step "フロントエンドのビルド"
   get_lambda_url
-  GENERATE_SOURCEMAP=false REACT_APP_API_URL="$LAMBDA_URL" npm run build --prefix client
+
+  if [ "$ENV" = "prod" ]; then
+    USER_POOL_ID=$(tf output -raw cognito_user_pool_id 2>/dev/null | tr -d '\r\n')
+    CLIENT_ID=$(tf output -raw cognito_client_id 2>/dev/null | tr -d '\r\n')
+    GENERATE_SOURCEMAP=false \
+      REACT_APP_API_URL="$LAMBDA_URL" \
+      REACT_APP_AUTH_MODE=cognito \
+      REACT_APP_USER_POOL_ID="$USER_POOL_ID" \
+      REACT_APP_CLIENT_ID="$CLIENT_ID" \
+      npm run build --prefix client
+  else
+    GENERATE_SOURCEMAP=false REACT_APP_API_URL="$LAMBDA_URL" npm run build --prefix client
+  fi
+
   ok "ビルドが完了しました"
 }
 
@@ -188,6 +200,22 @@ deploy_frontend() {
   BUCKET=$(tf output -raw s3_bucket_name 2>/dev/null | tr -d '\r\n')
   s3_sync "$BUCKET"
   ok "S3 へのアップロードが完了しました"
+
+  if [ "$ENV" = "prod" ]; then
+    step "CloudFront キャッシュの無効化"
+    DIST_ID=$(aws cloudfront list-distributions \
+      --query "DistributionList.Items[?Origins.Items[?DomainName=='${BUCKET}.s3.amazonaws.com' || DomainName=='${BUCKET}.s3-website.ap-northeast-1.amazonaws.com']].Id" \
+      --output text 2>/dev/null | head -1 | tr -d '\r\n')
+    if [ -n "$DIST_ID" ]; then
+      aws cloudfront create-invalidation \
+        --distribution-id "$DIST_ID" \
+        --paths "/*" \
+        --region us-east-1 > /dev/null
+      ok "CloudFront キャッシュを無効化しました（Distribution: ${DIST_ID}）"
+    else
+      info "CloudFront Distribution ID が取得できませんでした（手動で無効化してください）"
+    fi
+  fi
 }
 
 seed_db() {
@@ -210,6 +238,37 @@ seed_db() {
       "user_password": {"S": "password123"}
     }'
   ok "テストユーザーを登録しました（user_name: test / user_password: password123）"
+}
+
+seed_cognito() {
+  step "Cognito ユーザーの作成"
+  POOL_ID=$(tf output -raw cognito_user_pool_id 2>/dev/null | tr -d '\r\n')
+
+  EXISTING=$(aws cognito-idp admin-get-user \
+    --user-pool-id "$POOL_ID" \
+    --username test \
+    --region ap-northeast-1 2>/dev/null | grep -c '"Username"' || true)
+
+  if [ "$EXISTING" -gt "0" ]; then
+    info "Cognito にすでにユーザーが存在するためスキップします"
+    return
+  fi
+
+  aws cognito-idp admin-create-user \
+    --user-pool-id "$POOL_ID" \
+    --username test \
+    --temporary-password "Temp1234!" \
+    --message-action SUPPRESS \
+    --region ap-northeast-1 > /dev/null
+
+  aws cognito-idp admin-set-user-password \
+    --user-pool-id "$POOL_ID" \
+    --username test \
+    --password "password123" \
+    --permanent \
+    --region ap-northeast-1
+
+  ok "Cognito ユーザーを作成しました（username: test / password: password123）"
 }
 
 print_url() {
@@ -246,6 +305,9 @@ case "$MODE" in
     setup_ssm
     run_terraform
     seed_db
+    if [ "$ENV" = "prod" ]; then
+      seed_cognito
+    fi
     build_frontend
     deploy_frontend
     print_url
