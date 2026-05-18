@@ -20,17 +20,35 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// JWT 認証ミドルウェア（/api/* の全ルートに適用）
-app.use("/api", (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "認証が必要です" });
-  try {
-    jwt.verify(token, JWT_SECRET);
-    next();
-  } catch {
-    return res.status(401).json({ error: "トークンが無効です" });
+// JWT 認証ミドルウェア（ローカル環境のみ）
+// 本番はAPI GatewayのCognito JWT Authorizerが検証するためLambda側では不要
+if (process.env.JWT_SECRET) {
+  app.use("/api", (req, res, next) => {
+    if (req.method === "OPTIONS") return next();
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "認証が必要です" });
+    try {
+      jwt.verify(token, JWT_SECRET);
+      next();
+    } catch {
+      return res.status(401).json({ error: "トークンが無効です" });
+    }
+  });
+}
+
+// リクエストからuser_idを取得するヘルパー
+// 本番: API GatewayがCognitoトークンを検証済みのためrequestContextからsubを取得
+// ローカル: カスタムJWTのuserIdクレームを取得
+const getUserId = (req) => {
+  const sub = req.apiGateway?.event?.requestContext?.authorizer?.jwt?.claims?.sub;
+  if (sub) return sub;
+  if (process.env.JWT_SECRET) {
+    const token = req.headers.authorization?.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    return String(payload.userId);
   }
-});
+  return null;
+};
 
 // const pool = new Pool({
 //   user: process.env.DB_USER,
@@ -122,14 +140,10 @@ app.get("/api/wave-data", async (req, res) => {
       },
     );
 
-    // metaData 取得ログ
-    console.log("[Server] Stormglass meta:", response.data.meta);
-
     res.json({
       ...response.data,
       rateLimit: {
-        remaining:
-          response.data.meta.dailyQuota - response.data.meta.requestCount,
+        remaining: response.data.meta.dailyQuota - response.data.meta.requestCount,
         limit: response.data.meta.dailyQuota,
       },
     });
@@ -141,14 +155,11 @@ app.get("/api/wave-data", async (req, res) => {
 
 // お気に入りポイントの登録
 app.post("/api/favorites", async (req, res) => {
-  const { user_id, point_name, latitude, longitude, wave_cache } = req.body;
+  const { point_name, latitude, longitude, wave_cache } = req.body;
+  const user_id = getUserId(req);
 
-  // バリデーション：ユーザーIDがないと外部キー制約でエラーになるため
   if (!user_id) {
-    console.log("[Server] ログインしてください");
-    return res
-      .status(400)
-      .json({ success: false, message: "ログインが必要です" });
+    return res.status(401).json({ success: false, message: "ログインが必要です" });
   }
 
   try {
@@ -156,7 +167,7 @@ app.post("/api/favorites", async (req, res) => {
       TableName: "favorite_places",
       Item: {
         id: Date.now().toString(),
-        user_id: Number(user_id),
+        user_id: user_id,
         point_name: point_name,
         latitude: latitude,
         longitude: longitude,
@@ -179,14 +190,14 @@ app.post("/api/favorites", async (req, res) => {
 
 // ユーザ別　お気に入りポイント一覧表示
 app.get("/api/favorites/:userId", async (req, res) => {
-  const { userId } = req.params;
+  const user_id = getUserId(req);
 
   try {
     const params = {
       TableName: "favorite_places",
       IndexName: "user_id-index",
       KeyConditionExpression: "user_id = :uid",
-      ExpressionAttributeValues: { ":uid": Number(userId) },
+      ExpressionAttributeValues: { ":uid": user_id },
     };
     const { Items } = await docClient.send(new QueryCommand(params));
     res.json(Items);
@@ -204,14 +215,12 @@ app.put("/api/favorites/cache", async (req, res) => {
     const { user_id, latitude, longitude, wave_cache } = req.body;
 
     // user_id-index で該当ユーザーのお気に入りを取得し、座標で絞り込む
-    const { Items } = await docClient.send(
-      new QueryCommand({
-        TableName: "favorite_places",
-        IndexName: "user_id-index",
-        KeyConditionExpression: "user_id = :uid",
-        ExpressionAttributeValues: { ":uid": Number(user_id) },
-      }),
-    );
+    const { Items } = await docClient.send(new QueryCommand({
+      TableName: "favorite_places",
+      IndexName: "user_id-index",
+      KeyConditionExpression: "user_id = :uid",
+      ExpressionAttributeValues: { ":uid": getUserId(req) },
+    }));
 
     const target = Items?.find(
       (item) => item.latitude === latitude && item.longitude === longitude,

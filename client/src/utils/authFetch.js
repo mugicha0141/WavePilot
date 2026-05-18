@@ -1,5 +1,7 @@
-const authFetch = (url, options = {}) => {
-  const token = localStorage.getItem('token');
+import { getToken } from "../auth";
+
+const authFetch = async (url, options = {}) => {
+  const token = await getToken();
   const { headers = {}, ...rest } = options;
   return fetch(url, {
     ...rest,
