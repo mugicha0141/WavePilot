@@ -115,6 +115,7 @@ React + Node.js + DynamoDB で構築したサーファー向け波情報ダッ�
 <img width="1136" height="798" alt="Image" src="https://github.com/user-attachments/assets/ca20a0e0-9beb-4cb4-8907-58d4ea8a0a04" />
 
 #### 波マップ画面
+<img width="1921" height="883" alt="Image" src="https://github.com/user-attachments/assets/26498419-1f44-4340-b2da-633701eca916" />
 
 #### お気に入り一覧画面
 <img width="1139" height="415" alt="Image" src="https://github.com/user-attachments/assets/9803d871-05a3-4a6e-8b1c-6effb091d20b" />
