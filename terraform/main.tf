@@ -192,7 +192,8 @@ data "aws_ssm_parameter" "stormglass_key" {
 }
 
 data "aws_ssm_parameter" "jwt_secret" {
-  name = "/wave-app/jwt-secret"
+  count = var.environment == "prod" ? 0 : 1
+  name  = "/wave-app/jwt-secret"
 }
 
 # ── Lambda ───────────────────────────────────────────────────────
@@ -200,14 +201,16 @@ resource "aws_lambda_function" "wave_app_backend" {
   function_name    = "wave-app-backend"
   role             = aws_iam_role.lambda_role.arn
   handler          = "server.handler"
-  runtime          = "nodejs18.x"
+  runtime          = "nodejs22.x"
   filename         = "index.zip"
   source_code_hash = filebase64sha256("index.zip")
 
   environment {
-    variables = {
+    variables = var.environment == "prod" ? {
       STORMGLASS_API_KEY = data.aws_ssm_parameter.stormglass_key.value
-      JWT_SECRET         = data.aws_ssm_parameter.jwt_secret.value
+    } : {
+      STORMGLASS_API_KEY = data.aws_ssm_parameter.stormglass_key.value
+      JWT_SECRET         = data.aws_ssm_parameter.jwt_secret[0].value
     }
   }
 }
@@ -246,6 +249,13 @@ resource "aws_apigatewayv2_route" "wave_app" {
   target             = "integrations/${aws_apigatewayv2_integration.wave_app.id}"
   authorization_type = var.environment == "prod" ? "JWT" : "NONE"
   authorizer_id      = one(aws_apigatewayv2_authorizer.cognito[*].id)
+}
+
+# OPTIONSプリフライトリクエストは認証不要（CORSのため）
+resource "aws_apigatewayv2_route" "wave_app_options" {
+  api_id    = aws_apigatewayv2_api.wave_app.id
+  route_key = "OPTIONS /{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.wave_app.id}"
 }
 
 resource "aws_lambda_permission" "api_gateway" {
