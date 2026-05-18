@@ -1,133 +1,90 @@
-<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
-  <root>
-    <mxCell id="0" />
-    <mxCell id="1" parent="0" />
-
-    <!-- ===== ユーザー ===== -->
-    <mxCell id="user" value="ユーザー（ブラウザ）" style="shape=mxgraph.aws4.user;fillColor=#232F3E;strokeColor=none;fontColor=#232F3E;labelBackgroundColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;" vertex="1" parent="1">
-      <mxGeometry x="40" y="390" width="60" height="80" as="geometry" />
-    </mxCell>
-
-    <!-- ===== AWS Cloud 境界 ===== -->
-    <mxCell id="aws-cloud" value="AWS Cloud" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud_alt;strokeColor=#232F3E;fillColor=#FAFAFA;verticalLabelPosition=top;verticalAlign=bottom;align=center;html=1;fontSize=14;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="170" y="80" width="1150" height="760" as="geometry" />
-    </mxCell>
-
-    <!-- ===== CloudFront ===== -->
-    <mxCell id="cloudfront" value="Amazon CloudFront&#xa;（HTTPS 配信）" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#8C4FFF;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudfront;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
-      <mxGeometry x="250" y="380" width="60" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== S3（フロントエンド） ===== -->
-    <mxCell id="s3" value="Amazon S3&#xa;React フロントエンド&#xa;（静的ウェブサイトホスティング）" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#3F8624;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.s3;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
-      <mxGeometry x="450" y="380" width="60" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== Cognito ===== -->
-    <mxCell id="cognito" value="Amazon Cognito&#xa;User Pool&#xa;（本番認証）" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#BF0816;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cognito;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
-      <mxGeometry x="650" y="580" width="60" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== API Gateway ===== -->
-    <mxCell id="apigw" value="API Gateway&#xa;HTTP API&#xa;（JWT Authorizer）" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.api_gateway;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
-      <mxGeometry x="650" y="380" width="60" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== Lambda ===== -->
-    <mxCell id="lambda" value="AWS Lambda&#xa;Node.js 22 / Express&#xa;（serverless-http）" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#ED7100;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
-      <mxGeometry x="890" y="380" width="60" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== DynamoDB ===== -->
-    <mxCell id="dynamo" value="Amazon DynamoDB&#xa;user_login&#xa;favorite_places" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#C7131F;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
-      <mxGeometry x="1100" y="220" width="60" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== SSM Parameter Store ===== -->
-    <mxCell id="ssm" value="SSM Parameter Store&#xa;Stormglass API キー" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.systems_manager_parameter_store;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
-      <mxGeometry x="1100" y="520" width="60" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== IAM Role ===== -->
-    <mxCell id="iam" value="IAM Role&#xa;Lambda 実行権限&#xa;（DynamoDB アクセス）" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#DD344C;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.role;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
-      <mxGeometry x="890" y="580" width="60" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== Terraform ===== -->
-    <mxCell id="terraform" value="Terraform&#xa;インフラ管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="40" y="580" width="120" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== 外部: Stormglass API ===== -->
-    <mxCell id="external-box" value="外部サービス" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_corporate_data_center;strokeColor=#147EBA;fillColor=#E6F2F8;verticalLabelPosition=top;verticalAlign=bottom;align=center;html=1;fontSize=13;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="1380" y="300" width="220" height="200" as="geometry" />
-    </mxCell>
-
-    <mxCell id="stormglass" value="Stormglass API&#xa;波高 / 周期 / 風向データ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-      <mxGeometry x="1410" y="370" width="160" height="60" as="geometry" />
-    </mxCell>
-
-    <!-- ===== ローカル開発メモ ===== -->
-    <mxCell id="local-note" value="ローカル開発時は LocalStack が AWS を再現。認証はカスタム JWT（JWT_SECRET）を使用。" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=2;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
-      <mxGeometry x="170" y="870" width="450" height="30" as="geometry" />
-    </mxCell>
-
-    <!-- ===== 矢印 ===== -->
-
-    <!-- ユーザー → CloudFront -->
-    <mxCell id="e0" value="HTTPS アクセス" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="user" target="cloudfront" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- CloudFront → S3 -->
-    <mxCell id="e1" value="配信" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="cloudfront" target="s3" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- S3(React) → Cognito（ログイン） -->
-    <mxCell id="e_login" value="① ログイン&#xa;(AWS Amplify v6)" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#BF0816;" edge="1" source="s3" target="cognito" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- S3(React) → API Gateway（JWT付きAPIコール） -->
-    <mxCell id="e2" value="② API コール&#xa;（JWT 付き）" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="s3" target="apigw" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- API Gateway ↔ Cognito（JWT検証） -->
-    <mxCell id="e_verify" value="③ JWT 検証" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#BF0816;dashed=1;" edge="1" source="apigw" target="cognito" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- API Gateway → Lambda -->
-    <mxCell id="e3" value="④ プロキシ" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="apigw" target="lambda" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- Lambda → DynamoDB -->
-    <mxCell id="e4" value="CRUD" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="lambda" target="dynamo" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- Lambda → SSM -->
-    <mxCell id="e5" value="APIキー取得&#xa;（デプロイ時）" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;dashed=1;" edge="1" source="lambda" target="ssm" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- Lambda → Stormglass -->
-    <mxCell id="e6" value="波情報リクエスト" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="lambda" target="stormglass" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- IAM → Lambda -->
-    <mxCell id="e7" value="権限付与" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;dashed=1;" edge="1" source="iam" target="lambda" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- Terraform → AWS Cloud -->
-    <mxCell id="e8" value="インフラ構築" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;dashed=1;strokeColor=#6c8ebf;" edge="1" source="terraform" target="aws-cloud" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-  </root>
-</mxGraphModel>
+<mxfile host="app.diagrams.net">
+  <diagram id="J306DNU2NFljB8cNNivZ" name="ページ-1">
+    <mxGraphModel dx="2020" dy="1136" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="nZc0o27F7VVSObq_K2tT-1" parent="1" style="shape=mxgraph.aws4.user;fillColor=#232F3E;strokeColor=none;fontColor=#232F3E;labelBackgroundColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;" value="ユーザー（ブラウザ）" vertex="1">
+          <mxGeometry height="80" width="60" x="220" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-2" parent="1" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud_alt;strokeColor=#232F3E;fillColor=#FAFAFA;verticalLabelPosition=top;verticalAlign=bottom;align=center;html=1;fontSize=14;fontStyle=1;" value="AWS Cloud" vertex="1">
+          <mxGeometry height="760" width="1150" x="350" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-3" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#8C4FFF;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudfront;verticalLabelPosition=bottom;verticalAlign=top;" value="Amazon CloudFront&#xa;（HTTPS 配信）" vertex="1">
+          <mxGeometry height="60" width="60" x="430" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-4" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#3F8624;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.s3;verticalLabelPosition=bottom;verticalAlign=top;" value="Amazon S3&#xa;React App を配信&#xa;（静的ウェブサイトホスティング）" vertex="1">
+          <mxGeometry height="60" width="60" x="630" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-5" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#BF0816;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cognito;verticalLabelPosition=bottom;verticalAlign=top;" value="Amazon Cognito&#xa;User Pool&#xa;（本番認証）" vertex="1">
+          <mxGeometry height="60" width="60" x="630" y="830" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-6" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.api_gateway;verticalLabelPosition=bottom;verticalAlign=top;" value="API Gateway&#xa;HTTP API&#xa;（JWT Authorizer）" vertex="1">
+          <mxGeometry height="60" width="60" x="840" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-7" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#ED7100;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;verticalLabelPosition=bottom;verticalAlign=top;" value="AWS Lambda&#xa;Node.js 22 / Express&#xa;（serverless-http）" vertex="1">
+          <mxGeometry height="60" width="60" x="1070" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-8" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#C7131F;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;verticalLabelPosition=bottom;verticalAlign=top;" value="Amazon DynamoDB&#xa;user_login&#xa;favorite_places" vertex="1">
+          <mxGeometry height="60" width="60" x="1280" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-9" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.systems_manager_parameter_store;verticalLabelPosition=bottom;verticalAlign=top;" value="SSM Parameter Store&#xa;Stormglass API キー" vertex="1">
+          <mxGeometry height="60" width="60" x="1280" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-10" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#DD344C;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.role;verticalLabelPosition=bottom;verticalAlign=top;" value="IAM Role&#xa;Lambda 実行権限&#xa;（DynamoDB アクセス）" vertex="1">
+          <mxGeometry height="60" width="60" x="1070" y="830" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" value="Terraform&#xa;インフラ管理" vertex="1">
+          <mxGeometry height="60" width="120" x="193" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-12" parent="1" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_corporate_data_center;strokeColor=#147EBA;fillColor=#E6F2F8;verticalLabelPosition=top;verticalAlign=bottom;align=center;html=1;fontSize=13;fontStyle=1;" value="外部サービス" vertex="1">
+          <mxGeometry height="200" width="220" x="1560" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" value="Stormglass API&#xa;波高 / 周期 / 風向データ" vertex="1">
+          <mxGeometry height="60" width="160" x="1590" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-14" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=2;fontSize=10;fontColor=#666666;" value="ローカル開発時は LocalStack が AWS を再現。認証はカスタム JWT（JWT_SECRET）を使用。" vertex="1">
+          <mxGeometry height="30" width="450" x="350" y="1120" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-15" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" target="nZc0o27F7VVSObq_K2tT-3" value="HTTPS アクセス">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-16" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-3" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" target="nZc0o27F7VVSObq_K2tT-4" value="配信">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-17" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-4" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#BF0816;" target="nZc0o27F7VVSObq_K2tT-5" value="① ログイン&#xa;(AWS Amplify v6)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-18" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-4" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" target="nZc0o27F7VVSObq_K2tT-6" value="② API コール（JWT 付き）">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-19" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-6" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#BF0816;dashed=1;" target="nZc0o27F7VVSObq_K2tT-5" value="③ JWT 検証">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-20" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-6" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" target="nZc0o27F7VVSObq_K2tT-7" value="④ プロキシ転送">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-21" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-7" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" target="nZc0o27F7VVSObq_K2tT-8" value="CRUD">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-22" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-11" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;dashed=1;" target="nZc0o27F7VVSObq_K2tT-9" value="APIキー読込&#xa;→ Lambda 環境変数に設定&#xa;（deploy 時）">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="253" y="980" />
+              <mxPoint x="1310" y="980" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-23" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-7" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" target="nZc0o27F7VVSObq_K2tT-13" value="波情報リクエスト">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-24" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-10" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;dashed=1;" target="nZc0o27F7VVSObq_K2tT-7" value="権限付与">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nZc0o27F7VVSObq_K2tT-25" edge="1" parent="1" source="nZc0o27F7VVSObq_K2tT-11" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;dashed=1;strokeColor=#6c8ebf;" target="nZc0o27F7VVSObq_K2tT-2" value="インフラ構築">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
