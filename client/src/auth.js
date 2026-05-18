@@ -23,7 +23,10 @@ export const getToken = async () => {
 };
 
 export const cognitoLogin = async (username, password) => {
-  await signIn({ username, password });
+  try {
+    await signOut();
+  } catch (_) {}
+  await signIn({ username, password, options: { authFlowType: "USER_PASSWORD_AUTH" } });
   const session = await fetchAuthSession();
   const claims = session.tokens?.idToken?.payload;
   return {

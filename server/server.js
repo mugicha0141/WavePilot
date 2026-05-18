@@ -140,14 +140,10 @@ app.get("/api/wave-data", async (req, res) => {
       },
     );
 
-    // metaData 取得ログ
-    console.log("[Server] Stormglass meta:", response.data.meta);
-
     res.json({
       ...response.data,
       rateLimit: {
-        remaining:
-          response.data.meta.dailyQuota - response.data.meta.requestCount,
+        remaining: response.data.meta.dailyQuota - response.data.meta.requestCount,
         limit: response.data.meta.dailyQuota,
       },
     });
