@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "./LoginForm";
 import API_BASE_URL from "../config";
+import { isCognito, cognitoLogin } from "../auth";
 
 function Login({ onLogin }) {
   const initialValues = { user_name: "", user_password: "" };
@@ -25,26 +26,29 @@ function Login({ onLogin }) {
     setIsSubmit(true);
 
     try {
-      console.log("[Client] 送信するデータ:", formValues);
-      const response = await fetch(
-        `${API_BASE_URL}/login`,
-        {
+      if (isCognito) {
+        const userData = await cognitoLogin(formValues.user_name, formValues.user_password);
+        onLogin(userData);
+        navigate("/home");
+      } else {
+        console.log("[Client] 送信するデータ:", formValues);
+        const response = await fetch(`${API_BASE_URL}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formValues),
-        },
-      );
-
-      const data = await response.json();
-      if (data.success) {
-        localStorage.setItem('token', data.token);
-        onLogin({ id: data.id, user_name: data.user_name });
-        navigate("/home");
-      } else {
-        alert(data.message); // 失敗のメッセージを表示
+        });
+        const data = await response.json();
+        if (data.success) {
+          localStorage.setItem("token", data.token);
+          onLogin({ id: data.id, user_name: data.user_name });
+          navigate("/home");
+        } else {
+          alert(data.message);
+        }
       }
     } catch (error) {
       console.error("[Client] ログインエラー:", error);
+      alert("ログインに失敗しました");
     }
   };
 

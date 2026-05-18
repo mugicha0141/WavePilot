@@ -179,7 +179,20 @@ get_lambda_url() {
 build_frontend() {
   step "フロントエンドのビルド"
   get_lambda_url
-  GENERATE_SOURCEMAP=false REACT_APP_API_URL="$LAMBDA_URL" npm run build --prefix client
+
+  if [ "$ENV" = "prod" ]; then
+    USER_POOL_ID=$(tf output -raw cognito_user_pool_id 2>/dev/null | tr -d '\r\n')
+    CLIENT_ID=$(tf output -raw cognito_client_id 2>/dev/null | tr -d '\r\n')
+    GENERATE_SOURCEMAP=false \
+      REACT_APP_API_URL="$LAMBDA_URL" \
+      REACT_APP_AUTH_MODE=cognito \
+      REACT_APP_USER_POOL_ID="$USER_POOL_ID" \
+      REACT_APP_CLIENT_ID="$CLIENT_ID" \
+      npm run build --prefix client
+  else
+    GENERATE_SOURCEMAP=false REACT_APP_API_URL="$LAMBDA_URL" npm run build --prefix client
+  fi
+
   ok "ビルドが完了しました"
 }
 
@@ -210,6 +223,37 @@ seed_db() {
       "user_password": {"S": "password123"}
     }'
   ok "テストユーザーを登録しました（user_name: test / user_password: password123）"
+}
+
+seed_cognito() {
+  step "Cognito ユーザーの作成"
+  POOL_ID=$(tf output -raw cognito_user_pool_id 2>/dev/null | tr -d '\r\n')
+
+  EXISTING=$(aws cognito-idp admin-get-user \
+    --user-pool-id "$POOL_ID" \
+    --username test \
+    --region ap-northeast-1 2>/dev/null | grep -c '"Username"' || true)
+
+  if [ "$EXISTING" -gt "0" ]; then
+    info "Cognito にすでにユーザーが存在するためスキップします"
+    return
+  fi
+
+  aws cognito-idp admin-create-user \
+    --user-pool-id "$POOL_ID" \
+    --username test \
+    --temporary-password "Temp1234!" \
+    --message-action SUPPRESS \
+    --region ap-northeast-1 > /dev/null
+
+  aws cognito-idp admin-set-user-password \
+    --user-pool-id "$POOL_ID" \
+    --username test \
+    --password "password123" \
+    --permanent \
+    --region ap-northeast-1
+
+  ok "Cognito ユーザーを作成しました（username: test / password: password123）"
 }
 
 print_url() {
@@ -246,6 +290,9 @@ case "$MODE" in
     setup_ssm
     run_terraform
     seed_db
+    if [ "$ENV" = "prod" ]; then
+      seed_cognito
+    fi
     build_frontend
     deploy_frontend
     print_url
