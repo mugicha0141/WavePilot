@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { isCognito, cognitoLogout } from "./auth";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Header from "./components/Header";
@@ -42,13 +43,17 @@ function App() {
     navigate("/home", { replace: true });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (isCognito) {
+      await cognitoLogout();
+    } else {
+      localStorage.removeItem("token");
+    }
     setIsLoggedIn(false);
     setUsername("");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("username");
-    localStorage.removeItem("token");
-    navigate("/", { replace: true }); // ログアウト後に履歴を置き換えてログイン画面へ遷移する
+    navigate("/", { replace: true });
   };
 
   return (
