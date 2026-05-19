@@ -313,15 +313,6 @@ aws ssm delete-parameter --name "/wave-app/stormglass-api-key" --region ap-north
 
 ## 6. 開発者メモ
 
-### テスト用アカウント
-
-フルデプロイ後（`./deploy.sh` または手動の初期データ投入後）、以下でログインできます。
-
-| 項目 | 値 |
-| :--- | :--- |
-| ユーザー名 | `test` |
-| パスワード | `password123` |
-
 ### セキュリティ上の注意
 
 - Stormglass API キーは `.env` / `.env.prod` に記載し、**絶対に Git にコミットしないでください**（`.gitignore` 設定済み）。
