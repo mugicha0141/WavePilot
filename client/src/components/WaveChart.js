@@ -177,9 +177,10 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
               afterLabel: (context) => {
                 const deg = windDataRef.current[context.dataIndex];
                 const spd = windSpeedRef.current[context.dataIndex];
-                const windLine = deg != null ? `風向: ${degToArrow(deg)} ${degToCompass(deg)} (${deg}°)` : '';
-                const spdLine = spd != null ? `風速: ${spd} m/s` : '';
-                return [windLine, spdLine].filter(Boolean).join('\n');
+                const lines = [];
+                if (deg != null) lines.push(`風向: ${degToArrow(deg)} ${degToCompass(deg)} (${deg}°)`);
+                if (spd != null) lines.push(`風速: ${spd} m/s`);
+                return lines;
               },
             },
           },
