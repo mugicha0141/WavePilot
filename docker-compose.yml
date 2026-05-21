@@ -27,16 +27,14 @@ services:
   #     - localstack
 
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:3.8.0
     platform: linux/arm64
     container_name: wave_localstack
     ports:
       - "4566:4566"
     environment:
-      SERVICES: s3,dynamodb,lambda,iam,ssm,apigateway,apigatewayv2
       DEFAULT_REGION: ap-northeast-1
       AWS_DEFAULT_REGION: ap-northeast-1
-      ACTIVATE_PRO: "0"
     volumes:
       - .:/workspace
       - "/var/run/docker.sock:/var/run/docker.sock"
