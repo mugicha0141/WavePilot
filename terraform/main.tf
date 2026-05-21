@@ -215,8 +215,9 @@ resource "aws_lambda_function" "wave_app_backend" {
   }
 }
 
-# ── API Gateway HTTP API ──────────────────────────────────────────
+# ── API Gateway HTTP API（本番のみ・LocalStackはapigatewayv2非対応のためスキップ）──
 resource "aws_apigatewayv2_api" "wave_app" {
+  count         = var.environment == "local" ? 0 : 1
   name          = "wave-app-api"
   protocol_type = "HTTP"
 
@@ -231,39 +232,44 @@ resource "aws_apigatewayv2_api" "wave_app" {
 }
 
 resource "aws_apigatewayv2_stage" "wave_app" {
-  api_id      = aws_apigatewayv2_api.wave_app.id
+  count       = var.environment == "local" ? 0 : 1
+  api_id      = aws_apigatewayv2_api.wave_app[0].id
   name        = "$default"
   auto_deploy = true
 }
 
 resource "aws_apigatewayv2_integration" "wave_app" {
-  api_id                 = aws_apigatewayv2_api.wave_app.id
+  count                  = var.environment == "local" ? 0 : 1
+  api_id                 = aws_apigatewayv2_api.wave_app[0].id
   integration_type       = "AWS_PROXY"
   integration_uri        = aws_lambda_function.wave_app_backend.invoke_arn
   payload_format_version = "2.0"
 }
 
 resource "aws_apigatewayv2_route" "wave_app" {
-  api_id             = aws_apigatewayv2_api.wave_app.id
+  count              = var.environment == "local" ? 0 : 1
+  api_id             = aws_apigatewayv2_api.wave_app[0].id
   route_key          = "$default"
-  target             = "integrations/${aws_apigatewayv2_integration.wave_app.id}"
+  target             = "integrations/${aws_apigatewayv2_integration.wave_app[0].id}"
   authorization_type = var.environment == "prod" ? "JWT" : "NONE"
   authorizer_id      = one(aws_apigatewayv2_authorizer.cognito[*].id)
 }
 
 # OPTIONSプリフライトリクエストは認証不要（CORSのため）
 resource "aws_apigatewayv2_route" "wave_app_options" {
-  api_id    = aws_apigatewayv2_api.wave_app.id
+  count     = var.environment == "local" ? 0 : 1
+  api_id    = aws_apigatewayv2_api.wave_app[0].id
   route_key = "OPTIONS /{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.wave_app.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.wave_app[0].id}"
 }
 
 resource "aws_lambda_permission" "api_gateway" {
+  count         = var.environment == "local" ? 0 : 1
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.wave_app_backend.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.wave_app.execution_arn}/*/*"
+  source_arn    = "${aws_apigatewayv2_api.wave_app[0].execution_arn}/*/*"
 }
 
 # ── CloudFront（本番のみ） ────────────────────────────────────────
@@ -328,7 +334,7 @@ resource "aws_cloudfront_distribution" "wave_app" {
 
 # ── Outputs ──────────────────────────────────────────────────────
 output "lambda_url" {
-  value = aws_apigatewayv2_stage.wave_app.invoke_url
+  value = one(aws_apigatewayv2_stage.wave_app[*].invoke_url)
 }
 
 output "s3_bucket_name" {

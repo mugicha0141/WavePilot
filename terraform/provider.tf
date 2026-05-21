@@ -16,8 +16,9 @@ provider "aws" {
       lambda     = var.aws_endpoint
       iam        = var.aws_endpoint
       sts        = var.aws_endpoint
-      apigateway = var.aws_endpoint
-      ssm        = var.aws_endpoint
+      apigateway   = var.aws_endpoint
+      apigatewayv2 = var.aws_endpoint
+      ssm          = var.aws_endpoint
     }
   }
 }
