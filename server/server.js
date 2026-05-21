@@ -132,7 +132,7 @@ app.get("/api/wave-data", async (req, res) => {
         params: {
           lat: lat,
           lng: lng,
-          params: "waveHeight,wavePeriod,windDirection",
+          params: "waveHeight,wavePeriod,windDirection,windSpeed",
         },
         headers: {
           Authorization: apiKey,
