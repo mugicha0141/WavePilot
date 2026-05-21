@@ -201,7 +201,7 @@ resource "aws_lambda_function" "wave_app_backend" {
   function_name    = "wave-app-backend"
   role             = aws_iam_role.lambda_role.arn
   handler          = "server.handler"
-  runtime          = "nodejs22.x"
+  runtime          = var.environment == "prod" ? "nodejs22.x" : "nodejs18.x"
   filename         = "index.zip"
   source_code_hash = filebase64sha256("index.zip")
 
