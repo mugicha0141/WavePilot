@@ -156,35 +156,24 @@ AWS_ACCESS_KEY_ID=test
 AWS_SECRET_ACCESS_KEY=test
 ```
 
-### ③ LocalStack の起動
+### ③ 起動・デプロイ
 
-Docker Compose で LocalStack（AWS のローカル再現環境）をバックグラウンド起動します。
+LocalStack を起動してからフルデプロイを実行します。
 
 ```bash
 docker-compose up -d localstack
-```
-
-起動確認：
-
-```bash
-docker-compose ps
-```
-
-`localstack` が `Up` 状態であれば OK です。
-
-### ④ フルデプロイ
-
-`deploy.sh` を使うと以下をまとめて実行します。
-
-- バックエンドの ZIP ビルド（`.env` を除外）
-- Terraform によるインフラ構築（DynamoDB テーブル・Lambda・API Gateway・S3 の作成）
-- DynamoDB へのテストユーザー初期データ投入
-- React フロントエンドのビルド
-- S3 へのデプロイ
-
-```bash
 ./deploy.sh
 ```
+
+`deploy.sh` は以下をまとめて実行します。
+
+- バックエンドの ZIP ビルド（`.env` を除外）
+- Terraform によるインフラ構築（DynamoDB テーブル・Lambda・S3 の作成）
+- DynamoDB へのテストユーザー初期データ投入
+- React フロントエンドのビルド・S3 へのデプロイ
+- Express サーバーのバックグラウンド起動（`http://localhost:8080`）
+
+> **補足：** LocalStack Community 版は API Gateway v2 非対応のため、ローカルでは API Gateway をスキップしています。フロントエンドは Express サーバー（`localhost:8080`）経由で DynamoDB に接続します。
 
 完了するとアクセス URL が表示されます。
 
@@ -192,7 +181,7 @@ docker-compose ps
 アクセス URL: http://wave-app-local-static.s3-website.localhost.localstack.cloud:4566
 ```
 
-### ⑤ 部分的な再デプロイ
+### ④ 部分的な再デプロイ
 
 `deploy.sh` はモードオプションで特定の処理だけを再実行できます。
 
@@ -202,21 +191,15 @@ docker-compose ps
 ./deploy.sh --frontend    # フロントエンドのビルド + S3 同期のみ
 ```
 
-### ⑥ 環境の停止・削除
-
-LocalStack はデフォルトでは状態を永続化しません。そのため **停止・再起動のたびに `./deploy.sh` の再実行が必要**です。
+### ⑤ 環境の停止
 
 ```bash
-# 一時停止（コンテナを止めるだけ）
-docker-compose stop localstack
-
-# 再開
-docker-compose start localstack
-./deploy.sh
-
-# 完全に削除
-docker-compose down
+./deploy.sh --stop
 ```
+
+LocalStack コンテナと Express サーバーをまとめて停止します。
+
+> LocalStack はデフォルトでは状態を永続化しません。再起動後は `docker-compose up -d localstack && ./deploy.sh` の再実行が必要です。
 
 ---
 
@@ -343,6 +326,7 @@ docker-compose run --rm terraform show
 
 ```bash
 ./deploy.sh                        # LocalStack フルデプロイ（デフォルト）
+./deploy.sh --stop                 # ローカル環境を停止（LocalStack + Express）
 ./deploy.sh --env prod             # AWS 本番環境へフルデプロイ
 ./deploy.sh --infra                # インフラ（Terraform apply）のみ
 ./deploy.sh --backend              # Lambda コードの更新のみ
