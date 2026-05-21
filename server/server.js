@@ -298,9 +298,12 @@ app.patch("/api/favorites/:id", async (req, res) => {
 });
 
 // **サーバー起動**
-// app.listen(PORT, () => {
-//   console.log(`[Server] ✅ サーバー起動: http://localhost:${PORT}`);
-// });
+const PORT = process.env.PORT || 8080;
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`[Server] ✅ サーバー起動: http://localhost:${PORT}`);
+  });
+}
 
 // Lambda
 const serverless = require("serverless-http");
