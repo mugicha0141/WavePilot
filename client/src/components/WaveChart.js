@@ -9,7 +9,7 @@ import authFetch from "../utils/authFetch";
 const COMPASS = ['北', '北北東', '北東', '東北東', '東', '東南東', '南東', '南南東', '南', '南南西', '南西', '西南西', '西', '西北西', '北西', '北北西'];
 const ARROWS = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
 const degToCompass = (deg) => COMPASS[Math.round(deg / 22.5) % 16];
-const degToArrow = (deg) => ARROWS[Math.round(deg / 45) % 8];
+const degToArrow = (deg) => ARROWS[Math.round(((deg + 180) % 360) / 45) % 8];
 
 const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const [loading, setLoading] = useState(false);
@@ -24,6 +24,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const [rawWaveData, setRawWaveData] = useState(null);
   const [rateLimit, setRateLimit] = useState(null);
   const windDataRef = useRef([]);
+  const windSpeedRef = useRef([]);
 
   const handleSaveFavorite = async () => {
     console.log("[Client] currentUserの実体:", currentUser);
@@ -123,6 +124,11 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
       return deg != null ? Math.round(deg) : null;
     });
 
+    windSpeedRef.current = displayData.map((item) => {
+      const spd = item.windSpeed?.sg ?? item.windSpeed?.noaa ?? null;
+      return spd != null ? Math.round(spd * 10) / 10 : null;
+    });
+
     setChartData({
       labels: displayData.map((item) =>
         item.time.substring(0, 16).replace("T", " "),
@@ -170,7 +176,10 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
             callbacks: {
               afterLabel: (context) => {
                 const deg = windDataRef.current[context.dataIndex];
-                return deg != null ? `風向: ${degToArrow(deg)} ${degToCompass(deg)} (${deg}°)` : '';
+                const spd = windSpeedRef.current[context.dataIndex];
+                const windLine = deg != null ? `風向: ${degToArrow(deg)} ${degToCompass(deg)} (${deg}°)` : '';
+                const spdLine = spd != null ? `風速: ${spd} m/s` : '';
+                return [windLine, spdLine].filter(Boolean).join('\n');
               },
             },
           },
