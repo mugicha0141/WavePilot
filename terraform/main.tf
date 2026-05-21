@@ -175,7 +175,7 @@ resource "aws_cognito_user_pool_client" "main" {
 
 resource "aws_apigatewayv2_authorizer" "cognito" {
   count            = var.environment == "prod" ? 1 : 0
-  api_id           = aws_apigatewayv2_api.wave_app.id
+  api_id           = aws_apigatewayv2_api.wave_app[0].id
   authorizer_type  = "JWT"
   name             = "cognito-authorizer"
   identity_sources = ["$request.header.Authorization"]
