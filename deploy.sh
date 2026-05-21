@@ -170,9 +170,15 @@ update_lambda() {
 get_lambda_url() {
   LAMBDA_URL=$(tf output -raw lambda_url 2>/dev/null | tr -d '\r\n')
   if [ -z "$LAMBDA_URL" ]; then
-    error "Lambda URL を取得できませんでした。先に --infra を実行してください。"
+    if [ "$ENV" = "local" ]; then
+      LAMBDA_URL="http://localhost:8080"
+      info "API Gateway はローカル環境でスキップのため、ローカルサーバー URL を使用: $LAMBDA_URL"
+    else
+      error "Lambda URL を取得できませんでした。先に --infra を実行してください。"
+    fi
+  else
+    info "Lambda URL: $LAMBDA_URL"
   fi
-  info "Lambda URL: $LAMBDA_URL"
 }
 
 build_frontend() {
