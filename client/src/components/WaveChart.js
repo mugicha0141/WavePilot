@@ -6,19 +6,22 @@ import FetchWaveData from "../utils/FetchWaveData";
 import API_BASE_URL from "../config";
 import authFetch from "../utils/authFetch";
 
+const COMPASS = ['北', '北北東', '北東', '東北東', '東', '東南東', '南東', '南南東', '南', '南南西', '南西', '西南西', '西', '西北西', '北西', '北北西'];
+const degToCompass = (deg) => COMPASS[Math.round(deg / 22.5) % 16];
+
 const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const [loading, setLoading] = useState(false);
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
   const [chartData, setChartData] = useState(null);
-  const [days, setDays] = useState(2); // デフォルトは2日分
-  // 表示用のState
+  const [days, setDays] = useState(2);
   const [displayInfo, setDisplayInfo] = useState({ lat: 35.306, lng: 139.485 });
   const isFirstRender = useRef(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pointName, setPointName] = useState("");
   const [rawWaveData, setRawWaveData] = useState(null);
   const [rateLimit, setRateLimit] = useState(null);
+  const windDataRef = useRef([]);
 
   const handleSaveFavorite = async () => {
     console.log("[Client] currentUserの実体:", currentUser);
@@ -113,6 +116,11 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const updateGraph = (rawData, displayDays) => {
     const displayData = rawData.slice(0, displayDays * 24);
 
+    windDataRef.current = displayData.map((item) => {
+      const deg = item.windDirection?.sg ?? item.windDirection?.noaa ?? null;
+      return deg != null ? Math.round(deg) : null;
+    });
+
     setChartData({
       labels: displayData.map((item) =>
         item.time.substring(0, 16).replace("T", " "),
@@ -155,6 +163,16 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
           y: { beginAtZero: true },
         },
         layout: { padding: { left: 10, right: 20, top: 10, bottom: 10 } },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              afterLabel: (context) => {
+                const deg = windDataRef.current[context.dataIndex];
+                return deg != null ? `風向: ${degToCompass(deg)} (${deg}°)` : '';
+              },
+            },
+          },
+        },
       },
     });
     return () => chartInstance.current?.destroy();
