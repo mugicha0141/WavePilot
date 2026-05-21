@@ -7,7 +7,9 @@ import API_BASE_URL from "../config";
 import authFetch from "../utils/authFetch";
 
 const COMPASS = ['北', '北北東', '北東', '東北東', '東', '東南東', '南東', '南南東', '南', '南南西', '南西', '西南西', '西', '西北西', '北西', '北北西'];
+const ARROWS = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
 const degToCompass = (deg) => COMPASS[Math.round(deg / 22.5) % 16];
+const degToArrow = (deg) => ARROWS[Math.round(deg / 45) % 8];
 
 const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
   const [loading, setLoading] = useState(false);
@@ -168,7 +170,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
             callbacks: {
               afterLabel: (context) => {
                 const deg = windDataRef.current[context.dataIndex];
-                return deg != null ? `風向: ${degToCompass(deg)} (${deg}°)` : '';
+                return deg != null ? `風向: ${degToArrow(deg)} ${degToCompass(deg)} (${deg}°)` : '';
               },
             },
           },
