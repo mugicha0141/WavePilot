@@ -24,6 +24,7 @@ usage() {
   echo "  --backend    バックエンドのみ（Lambdaコードを更新）"
   echo "  --frontend   フロントエンドのみ（ビルド＋S3同期）"
   echo "  --infra      インフラのみ（terraform apply）"
+  echo "  --stop       ローカル環境を停止（LocalStack + Expressサーバー）"
   echo "  --help       このヘルプを表示"
   echo ""
   echo -e "${BOLD}例:${RESET}"
@@ -47,6 +48,7 @@ while [[ $# -gt 0 ]]; do
     --backend)  MODE="backend";  shift ;;
     --frontend) MODE="frontend"; shift ;;
     --infra)    MODE="infra";    shift ;;
+    --stop)     MODE="stop";     shift ;;
     --help)     usage ;;
     *) error "不明なオプション: $1\n./deploy.sh --help で使い方を確認できます" ;;
   esac
@@ -310,6 +312,22 @@ START=$(date +%s)
 echo -e "${BOLD}環境: ${ENV}  モード: ${MODE}${RESET}"
 
 case "$MODE" in
+  stop)
+    step "ローカル環境を停止"
+    if [ -f /tmp/wave-server.pid ]; then
+      PID=$(cat /tmp/wave-server.pid)
+      if kill "$PID" 2>/dev/null; then
+        ok "Express サーバーを停止しました（PID: ${PID}）"
+      else
+        info "Express サーバーはすでに停止しています"
+      fi
+      rm -f /tmp/wave-server.pid
+    else
+      info "Express サーバーの PID ファイルが見つかりません（すでに停止済みの可能性）"
+    fi
+    docker-compose down
+    ok "LocalStack を停止しました"
+    ;;
   backend)
     check_localstack
     build_backend
