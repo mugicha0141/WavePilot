@@ -277,6 +277,27 @@ seed_cognito() {
   ok "Cognito ユーザーを作成しました（username: test / password: password123）"
 }
 
+start_local_server() {
+  if [ "$ENV" != "local" ]; then return; fi
+  step "Express サーバーの起動"
+  if lsof -ti:8080 > /dev/null 2>&1; then
+    info "ポート 8080 はすでに使用中です（サーバー起動済み）"
+    return
+  fi
+  cd server
+  nohup node server.js > /tmp/wave-server.log 2>&1 &
+  echo $! > /tmp/wave-server.pid
+  cd ..
+  sleep 1
+  if lsof -ti:8080 > /dev/null 2>&1; then
+    ok "Express サーバーを起動しました（PID: $(cat /tmp/wave-server.pid)）"
+    info "ログ: tail -f /tmp/wave-server.log"
+    info "停止: kill \$(cat /tmp/wave-server.pid)"
+  else
+    error "Express サーバーの起動に失敗しました。ログを確認してください: /tmp/wave-server.log"
+  fi
+}
+
 print_url() {
   S3_URL=$(tf output -raw s3_website_url 2>/dev/null | tr -d '\r\n')
   echo -e "\n${BOLD}${GREEN}🎉 デプロイ完了！${RESET}"
@@ -316,6 +337,7 @@ case "$MODE" in
     fi
     build_frontend
     deploy_frontend
+    start_local_server
     print_url
     ;;
 esac
