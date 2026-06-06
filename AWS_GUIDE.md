@@ -78,6 +78,92 @@ module.exports.handler = serverless(app);
 
 API Gateway からリクエストが来ると Lambda が起動し、Express のルーティングでリクエストを処理して返します。
 
+### リクエスト・レスポンスの変換フロー
+
+フロントエンドは通常の HTTP リクエストを送るだけですが、Lambda に届くまでに形式が変換されます。この変換はすべて自動で行われ、開発者がコードを書く必要はありません。
+
+**リクエスト（行き）**
+```
+FavoritePlaceList.js
+  ↓ 通常の HTTP リクエスト
+  fetch("https://xxxx.execute-api.amazonaws.com/api/favorites/abc-123")
+
+API Gateway（自動変換）
+  ↓ HTTP リクエスト → event 形式に変換
+  event = {
+    httpMethod: "GET",
+    path: "/api/favorites/abc-123",
+    headers: { Authorization: "Bearer eyJ..." }
+  }
+
+serverless-http（自動変換）
+  ↓ event → Express の req/res 形式に変換
+
+server.js の Express ルーティング
+  app.get("/api/favorites/:userId", async (req, res) => {
+    req.params.userId  // "abc-123" が入っている
+    req.headers        // Authorization ヘッダーが入っている
+  })
+```
+
+**レスポンス（戻り）**
+```
+server.js
+  res.json(Items)  // 取得したデータを JSON で返す
+  ↓
+serverless-http（自動変換）
+  ↓ res → event のレスポンス形式に変換
+  ↓
+API Gateway（自動変換）
+  ↓ event レスポンス → HTTP レスポンスに変換
+  ↓
+FavoritePlaceList.js
+  const data = await res.json()  // Items の中身が入っている
+```
+
+### app.listen はローカル専用
+
+`server.js` の末尾にある以下のコードはローカル開発専用です。
+
+```javascript
+if (require.main === module) {
+  app.listen(PORT, () => { ... });
+}
+```
+
+| 実行方法 | `require.main === module` | 動作 |
+| :--- | :--- | :--- |
+| `node server.js`（ローカル） | `true` | `app.listen` が実行される |
+| Lambda（`serverless-http` 経由） | `false` | `app.listen` はスキップされる |
+
+ローカルでは `app.listen` がポートを開いてリクエストを受け付けますが、Lambda では API Gateway がその役割を担うためポートは不要です。`require.main === module` の条件がないと、Lambda 上でも無意味なポート待ち受けが起動してしまいます。
+
+### フロントエンドは GET/POST を意識して書くか
+
+フロントエンド（`authFetch`）はデフォルトで GET になります。POST や DELETE は明示的に指定します。
+
+```javascript
+// GET（デフォルト）
+authFetch(`${API_BASE_URL}/api/favorites/${userId}`)
+
+// POST
+authFetch(`${API_BASE_URL}/api/favorites`, {
+  method: "POST",
+  body: JSON.stringify({ ... })
+})
+
+// DELETE
+authFetch(`${API_BASE_URL}/api/favorites/${id}`, { method: "DELETE" })
+```
+
+サーバー側（`server.js`）で「この URL・メソッドが来たらこの処理」と定義しています。
+
+```javascript
+app.get("/api/favorites/:userId", ...)    // GET → 一覧取得
+app.post("/api/favorites", ...)           // POST → 新規登録
+app.delete("/api/favorites/:id", ...)     // DELETE → 削除
+```
+
 ### Terraform での設定
 
 ```hcl
