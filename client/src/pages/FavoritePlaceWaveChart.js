@@ -4,6 +4,28 @@ import { useNavigate, useLocation } from "react-router-dom";
 import FetchWaveData from "../utils/FetchWaveData";
 import SaveDataCache from "../utils/SaveDataCache";
 
+const COMPASS = [
+  "北",
+  "北北東",
+  "北東",
+  "東北東",
+  "東",
+  "東南東",
+  "南東",
+  "南南東",
+  "南",
+  "南南西",
+  "南西",
+  "西南西",
+  "西",
+  "西北西",
+  "北西",
+  "北北西",
+];
+const ARROWS = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"];
+const degToCompass = (deg) => COMPASS[Math.round(deg / 22.5) % 16];
+const degToArrow = (deg) => ARROWS[Math.round(((deg + 180) % 360) / 45) % 8];
+
 const FavoritePlaceWaveChart = ({ currentUser }) => {
   const [selectedDays, setSelectedDays] = useState(3);
   const chartRef = useRef(null);
@@ -14,6 +36,8 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
   const [rawData, setRawData] = useState(wave_cache || null);
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const windDataRef = useRef([]);
+  const windSpeedRef = useRef([]);
 
   // rawDataまたはselectedDaysが変わったら表示を更新
   useEffect(() => {
@@ -39,10 +63,32 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          x: { ticks: { autoSkip: true, maxTicksLimit: selectedDays === 7 ? 28 : 12 } },
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: selectedDays === 7 ? 28 : 12,
+            },
+          },
           y: { beginAtZero: true },
         },
         layout: { padding: { left: 10, right: 20, top: 10, bottom: 10 } },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              afterLabel: (context) => {
+                const deg = windDataRef.current[context.dataIndex];
+                const spd = windSpeedRef.current[context.dataIndex];
+                const lines = [];
+                if (deg != null)
+                  lines.push(
+                    `風向: ${degToArrow(deg)} ${degToCompass(deg)} (${deg}°)`,
+                  );
+                if (spd != null) lines.push(`風速: ${spd} m/s`);
+                return lines;
+              },
+            },
+          },
+        },
       },
     });
 
@@ -77,11 +123,25 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
   const updateView = (data, days) => {
     if (!data || data.length === 0) return;
 
-    let filtered = data.slice(0, days * 24);
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0); // JST 今日の 0時
+    const fromToday = data.filter((h) => new Date(h.time) >= todayMidnight);
+
+    let filtered = fromToday.slice(0, days * 24);
 
     if (days === 7) {
       filtered = filtered.filter((_, i) => i % 3 === 0);
     }
+
+    windDataRef.current = filtered.map((h) => {
+      const deg = h.windDirection?.sg ?? h.windDirection?.noaa ?? null;
+      return deg != null ? Math.round(deg) : null;
+    });
+
+    windSpeedRef.current = filtered.map((h) => {
+      const spd = h.windSpeed?.sg ?? h.windSpeed?.noaa ?? null;
+      return spd != null ? Math.round(spd * 10) / 10 : null;
+    });
 
     const labels = filtered.map((h) => {
       const d = new Date(h.time);
@@ -199,7 +259,7 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
         </div>
       )}
 
-      <div style={{ marginTop: "30px", textAlign: "center" }}>
+      <div style={{ marginTop: "10px", textAlign: "center" }}>
         <button
           onClick={() => navigate(-1)}
           style={{

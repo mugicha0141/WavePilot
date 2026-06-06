@@ -23,8 +23,8 @@ const Home = ({ currentUser }) => {
             WaveMap
           </button>
           <button
-            className="button3"
-            onClick={() => navigate("/Button3")}
+            className="WaveNotice"
+            onClick={() => navigate("/WaveNotice")}
           ></button>
           <button
             className="button4"

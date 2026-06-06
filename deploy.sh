@@ -124,6 +124,43 @@ setup_ssm() {
       --region ap-northeast-1 > /dev/null
   fi
 
+  # LINE Messaging API
+  LINE_SECRET_VAL=$(grep "^LINE_CHANNEL_SECRET=" server/.env | cut -d= -f2-)
+  LINE_TOKEN_VAL=$(grep "^LINE_CHANNEL_ACCESS_TOKEN=" server/.env | cut -d= -f2-)
+  if [ -z "$LINE_SECRET_VAL" ] || [ -z "$LINE_TOKEN_VAL" ]; then
+    error "LINE_CHANNEL_SECRET または LINE_CHANNEL_ACCESS_TOKEN が server/.env に見つかりません。"
+  fi
+  awscli ssm put-parameter \
+    --name "/wave-app/line-channel-secret" \
+    --value "$LINE_SECRET_VAL" \
+    --type SecureString \
+    --overwrite \
+    --region ap-northeast-1 > /dev/null
+  awscli ssm put-parameter \
+    --name "/wave-app/line-channel-access-token" \
+    --value "$LINE_TOKEN_VAL" \
+    --type SecureString \
+    --overwrite \
+    --region ap-northeast-1 > /dev/null
+
+  # EventBridge Scheduler ARN（ローカルのみ）
+  if [ "$ENV" = "local" ]; then
+    NOTIFY_LAMBDA_ARN_VAL=$(grep "^NOTIFY_LAMBDA_ARN=" server/.env | cut -d= -f2- | tr -d '"')
+    SCHEDULER_ROLE_ARN_VAL=$(grep "^SCHEDULER_ROLE_ARN=" server/.env | cut -d= -f2- | tr -d '"')
+    awscli ssm put-parameter \
+      --name "/wave-app/notify-lambda-arn" \
+      --value "$NOTIFY_LAMBDA_ARN_VAL" \
+      --type String \
+      --overwrite \
+      --region ap-northeast-1 > /dev/null
+    awscli ssm put-parameter \
+      --name "/wave-app/scheduler-role-arn" \
+      --value "$SCHEDULER_ROLE_ARN_VAL" \
+      --type String \
+      --overwrite \
+      --region ap-northeast-1 > /dev/null
+  fi
+
   ok "SSM Parameter を設定しました"
 }
 
