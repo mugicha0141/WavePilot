@@ -40,6 +40,7 @@ Stormglass API の無料プランは **1日10リクエスト** という厳し�
 | **お気に入り登録** | よく行くポイントを名前・座標付きで DB に保存 |
 | **キャッシュ機能** | お気に入りの波データを DynamoDB にキャッシュし、次回以降の読込を高速化 |
 | **APIリクエスト残数表示** | Stormglass の本日の残りリクエスト数をグラフ下に表示 |
+| **LINE波情報通知** | お気に入りポイントごとに通知時刻を設定し、毎日指定時刻に当日の波情報を LINE へ送信 |
 
 ### 画面遷移
 
@@ -47,8 +48,9 @@ Stormglass API の無料プランは **1日10リクエスト** という厳し�
 /           ログイン画面
  └─ /home        ホーム（メニュー）
      ├─ /WaveMap              地図 + 波高グラフ
-     └─ /FavoritePlaceList    お気に入り一覧
-          └─ /FavoritePlaceWaveChart   お気に入り地点の波高グラフ
+     ├─ /FavoritePlaceList    お気に入り一覧
+     │    └─ /FavoritePlaceWaveChart   お気に入り地点の波高グラフ
+     └─ /WaveNotice           LINE通知設定
 ```
 
 ---
@@ -63,8 +65,8 @@ Stormglass API の無料プランは **1日10リクエスト** という厳し�
 | **Backend** | Node.js、Express 4、serverless-http（Lambda 対応） |
 | **認証** | Amazon Cognito User Pool（本番）/ カスタム JWT（ローカル開発） |
 | **Database** | AWS DynamoDB |
-| **外部 API** | [Stormglass API](https://stormglass.io/)（波高・周期・風向データ） |
-| **Infrastructure** | AWS Lambda、API Gateway HTTP API（JWT Authorizer）、S3、CloudFront、IAM、SSM Parameter Store |
+| **外部 API** | [Stormglass API](https://stormglass.io/)（波高・周期・風向データ）、LINE Messaging API |
+| **Infrastructure** | AWS Lambda、API Gateway HTTP API（JWT Authorizer）、S3、CloudFront、IAM、SSM Parameter Store、EventBridge Scheduler |
 | **IaC / ローカル** | Terraform、Docker Compose、LocalStack |
 
 ### バックエンド API エンドポイント
@@ -78,9 +80,14 @@ Stormglass API の無料プランは **1日10リクエスト** という厳し�
 | `PUT` | `/api/favorites/cache` | 指定お気に入りの波データキャッシュを更新する |
 | `PATCH` | `/api/favorites/:id` | ポイント名を編集する |
 | `DELETE` | `/api/favorites/:id` | お気に入りを削除する |
+| `GET` | `/api/notifications` | ログインユーザーの通知設定を取得する |
+| `POST` | `/api/notifications` | 指定お気に入りの通知時刻を登録・更新する |
+| `DELETE` | `/api/notifications/:favId` | 指定お気に入りの通知設定を削除する |
+| `POST` | `/line/webhook` | LINE Messaging API からのWebhookを受信する（認証なし） |
 
 > 本番環境では `/login` を使わず、Amazon Cognito への直接認証（AWS Amplify v6）に切り替わります。  
-> `/api/*` エンドポイントは API Gateway の JWT Authorizer（Cognito）で保護されます。
+> `/api/*` エンドポイントは API Gateway の JWT Authorizer（Cognito）で保護されます。  
+> `/line/webhook` は LINE からのリクエストを受け付けるため JWT 認証を外しています。
 
 ### データフロー
 
@@ -118,6 +125,18 @@ Stormglass API の無料プランは **1日10リクエスト** という厳し�
 | `longitude` | Number | 経度 |
 | `wave_cache` | Map | キャッシュされた波データ（生 JSON） |
 | `updated_at` | String | キャッシュ最終更新日時（ISO 8601） |
+
+#### テーブル: `notification_settings`
+
+| 属性 | 型 | 説明 |
+| :--- | :--- | :--- |
+| `user_id` | String | パーティションキー（Cognito の sub） |
+| `link_code` | String | LINE連携用の4桁コード |
+| `line_user_id` | String | LINE連携済みユーザーのID |
+| `schedules` | Map | スポットIDをキーとした通知設定マップ（`{ place_name, lat, lng, notify_time, enabled }`） |
+
+> 通知時刻は EventBridge Scheduler に cron スケジュールとして登録されます。  
+> notify Lambda は指定時刻に起動し、Stormglass API から波データを取得して LINE に送信します。
 
 ### アーキテクチャ図
 <img width="1250" height="685" alt="Image" src="https://github.com/user-attachments/assets/ee80afb6-a835-4595-8792-444738f0b0b0" />
