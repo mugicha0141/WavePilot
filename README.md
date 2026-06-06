@@ -124,7 +124,7 @@ Stormglass API の無料プランは **1日10リクエスト** という厳し�
 
 ### アプリ画面
 #### ホーム画面
-<img width="1136" height="798" alt="Image" src="https://github.com/user-attachments/assets/ca20a0e0-9beb-4cb4-8907-58d4ea8a0a04" />
+<img width="1920" height="874" alt="Image" src="https://github.com/user-attachments/assets/5e007838-927e-4f3a-91c7-7bbaf20549a8" />
 
 #### 波マップ画面
 <img width="1920" height="964" alt="Image" src="https://github.com/user-attachments/assets/6fc9e7dd-caf9-48a8-900a-c31d8a9e9e5b" />
