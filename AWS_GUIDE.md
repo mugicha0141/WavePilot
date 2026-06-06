@@ -352,6 +352,94 @@ DynamoDB の課金方式は 2 種類あります。
 
 アクセスが不規則な個人アプリでは `PAY_PER_REQUEST` の方がコストを抑えられます。
 
+### DynamoDB の型変換（DynamoDBDocumentClient）
+
+DynamoDB は内部でデータを型情報付きの形式で保存しています。
+
+```javascript
+// DynamoDB 内部の生形式
+{
+  "point_name": { "S": "鵠沼" },   // S = String 型
+  "latitude":   { "N": "35.31" },  // N = Number 型
+}
+```
+
+この形式のまま使うと扱いにくいため、AWS SDK の `DynamoDBDocumentClient` が自動で変換してくれます。
+
+```javascript
+// server.js
+const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+const docClient = DynamoDBDocumentClient.from(client); // ← 1行書くだけで全クエリに自動変換が適用される
+```
+
+変換後はキーと値だけになり、型のラッパー（`{ "S": ... }` など）が取り除かれます。
+
+```javascript
+// 変換後（Items の中身）
+{ "point_name": "鵠沼", "latitude": 35.31 }
+```
+
+### DynamoDB から取得したデータをフロントエンドで表示する流れ
+
+お気に入り一覧取得を例に、DynamoDB のデータが画面に表示されるまでの流れを示します。
+
+**① server.js：DynamoDB からデータ取得してそのまま返す**
+
+```javascript
+app.get("/api/favorites/:userId", async (req, res) => {
+  const { Items } = await docClient.send(new QueryCommand(...));
+  res.json(Items); // 登録時に保存した全フィールドをそのまま返す（消される要素はない）
+});
+```
+
+**② フロントエンドに返ってくる JSON の構造**
+
+`favorites` は配列です。ユーザーが2件登録していれば2つ、3件なら3つ入ります。
+
+```json
+[
+  { "id": "1717200000000", "point_name": "鵠沼", "latitude": 35.3167, "longitude": 139.4833, ... },
+  { "id": "1717200000001", "point_name": "辻堂", "latitude": 35.3200, "longitude": 139.4700, ... }
+]
+```
+
+`id` は登録時に `Date.now().toString()` で生成したミリ秒のタイムスタンプで、各レコードを一意に識別します。
+
+**③ FavoritePlaceList.js：map でループして画面に表示**
+
+```javascript
+// 件数確認（0件なら「登録なし」を表示）
+favorites.length === 0 ? <p>登録なし</p> : ...
+
+// map で1件ずつ取り出して HTML に変換
+favorites.map((point) => (
+  <tr key={point.id}>               // key: React が各行を識別するための識別子
+    <td>{point.point_name}</td>     // "鵠沼"
+    <td>{point.latitude.toFixed(4)}</td>   // 35.3167（小数点4桁に丸める）
+    <td>{point.longitude.toFixed(4)}</td>  // 139.4833
+  </tr>
+))
+```
+
+`favorites.id` のように配列に直接キーを使うと `undefined` になります。必ず `map` でループして各要素（`point`）に対してキーを使います。
+
+**`key` と DynamoDB のパーティションキーは同じ考え方**
+
+| | DynamoDB | React の key |
+| :--- | :--- | :--- |
+| 目的 | レコードを一意に識別する | リストの要素を一意に識別する |
+| 設定値 | `id`（パーティションキー） | `key={point.id}` |
+| なぜ必要 | 特定のレコードを素早く見つけるため | 追加・削除・更新された要素を判断するため |
+
+**`.toFixed(4)` を使う理由**
+
+DynamoDB から返ってくる数値は桁数がバラバラになる場合があります。`.toFixed(4)` で小数点以下4桁に揃えることで表示を統一しています。
+
+```javascript
+(35.31674892).toFixed(4)  // "35.3167"
+(35.3).toFixed(4)         // "35.3000"
+```
+
 ---
 
 ## 5. Amazon S3
