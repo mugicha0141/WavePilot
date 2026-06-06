@@ -120,7 +120,7 @@ Stormglass API の無料プランは **1日10リクエスト** という厳し�
 | `updated_at` | String | キャッシュ最終更新日時（ISO 8601） |
 
 ### アーキテクチャ図
-<img width="1380" height="731" alt="Image" src="https://github.com/user-attachments/assets/fa1aaa27-8c08-442f-80b4-d016ea566254" />
+<img width="1250" height="685" alt="Image" src="https://github.com/user-attachments/assets/ee80afb6-a835-4595-8792-444738f0b0b0" />
 
 ### アプリ画面
 #### ホーム画面
