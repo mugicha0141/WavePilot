@@ -135,6 +135,9 @@ Stormglass API の無料プランは **1日10リクエスト** という厳し�
 #### お気に入りポイント波情報画面
 <img width="1137" height="804" alt="Image" src="https://github.com/user-attachments/assets/c7e5b23c-232a-4b34-998a-a5986cf8e808" />
 
+#### Line通知設定画面
+<img width="1920" height="874" alt="Image" src="https://github.com/user-attachments/assets/17813434-693e-492c-a50b-2ffd941b9794" />
+
 ---
 
 ## 3. ローカル環境構築（LocalStack + Terraform）
