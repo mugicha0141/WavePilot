@@ -33,6 +33,7 @@ resource "aws_iam_policy" "lambda_dynamodb" {
         "arn:aws:dynamodb:ap-northeast-1:*:table/favorite_places",
         "arn:aws:dynamodb:ap-northeast-1:*:table/favorite_places/index/*",
         "arn:aws:dynamodb:ap-northeast-1:*:table/WaveData",
+        "arn:aws:dynamodb:ap-northeast-1:*:table/notification_settings",
       ]
     }]
   })
@@ -41,6 +42,82 @@ resource "aws_iam_policy" "lambda_dynamodb" {
 resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.lambda_dynamodb.arn
+}
+
+resource "aws_iam_policy" "lambda_scheduler" {
+  name = "wave-app-lambda-scheduler"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "scheduler:CreateSchedule",
+        "scheduler:UpdateSchedule",
+        "scheduler:DeleteSchedule",
+        "scheduler:GetSchedule",
+      ]
+      Resource = "arn:aws:scheduler:ap-northeast-1:*:schedule/default/wave-notify-*"
+    }, {
+      Effect   = "Allow"
+      Action   = "iam:PassRole"
+      Resource = aws_iam_role.scheduler_role.arn
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_scheduler" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_scheduler.arn
+}
+
+# ── EventBridge Scheduler 用 IAM ロール ──────────────────────────
+resource "aws_iam_role" "scheduler_role" {
+  name = "wave-app-scheduler-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "scheduler.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "scheduler_invoke_lambda" {
+  name = "wave-app-scheduler-invoke-lambda"
+  role = aws_iam_role.scheduler_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "lambda:InvokeFunction"
+      Resource = aws_lambda_function.wave_notify.arn
+    }]
+  })
+}
+
+# ── 通知用 Lambda 関数 ────────────────────────────────────────────
+resource "aws_lambda_function" "wave_notify" {
+  function_name    = "wave-notify"
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "notify.handler"
+  runtime          = var.environment == "prod" ? "nodejs22.x" : "nodejs18.x"
+  filename         = "index.zip"
+  source_code_hash = filebase64sha256("index.zip")
+  timeout          = 30
+
+  environment {
+    variables = var.environment == "prod" ? {
+      STORMGLASS_API_KEY        = data.aws_ssm_parameter.stormglass_key.value
+      LINE_CHANNEL_ACCESS_TOKEN = data.aws_ssm_parameter.line_channel_access_token.value
+    } : {
+      STORMGLASS_API_KEY        = data.aws_ssm_parameter.stormglass_key.value
+      LINE_CHANNEL_ACCESS_TOKEN = data.aws_ssm_parameter.line_channel_access_token.value
+      AWS_ENDPOINT_URL          = "http://localstack:4566"
+    }
+  }
 }
 
 # ── S3（静的ホスティング） ────────────────────────────────────────
@@ -114,6 +191,17 @@ resource "aws_dynamodb_table" "user_login" {
     name            = "UserNameIndex"
     hash_key        = "user_name"
     projection_type = "ALL"
+  }
+}
+
+resource "aws_dynamodb_table" "notification_settings" {
+  name         = "notification_settings"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "user_id"
+
+  attribute {
+    name = "user_id"
+    type = "S"
   }
 }
 
@@ -196,6 +284,14 @@ data "aws_ssm_parameter" "jwt_secret" {
   name  = "/wave-app/jwt-secret"
 }
 
+data "aws_ssm_parameter" "line_channel_secret" {
+  name = "/wave-app/line-channel-secret"
+}
+
+data "aws_ssm_parameter" "line_channel_access_token" {
+  name = "/wave-app/line-channel-access-token"
+}
+
 # ── Lambda ───────────────────────────────────────────────────────
 resource "aws_lambda_function" "wave_app_backend" {
   function_name    = "wave-app-backend"
@@ -207,10 +303,16 @@ resource "aws_lambda_function" "wave_app_backend" {
 
   environment {
     variables = var.environment == "prod" ? {
-      STORMGLASS_API_KEY = data.aws_ssm_parameter.stormglass_key.value
+      STORMGLASS_API_KEY        = data.aws_ssm_parameter.stormglass_key.value
+      LINE_CHANNEL_SECRET       = data.aws_ssm_parameter.line_channel_secret.value
+      LINE_CHANNEL_ACCESS_TOKEN = data.aws_ssm_parameter.line_channel_access_token.value
+      NOTIFY_LAMBDA_ARN         = aws_lambda_function.wave_notify.arn
+      SCHEDULER_ROLE_ARN        = aws_iam_role.scheduler_role.arn
     } : {
-      STORMGLASS_API_KEY = data.aws_ssm_parameter.stormglass_key.value
-      JWT_SECRET         = data.aws_ssm_parameter.jwt_secret[0].value
+      STORMGLASS_API_KEY        = data.aws_ssm_parameter.stormglass_key.value
+      JWT_SECRET                = data.aws_ssm_parameter.jwt_secret[0].value
+      LINE_CHANNEL_SECRET       = data.aws_ssm_parameter.line_channel_secret.value
+      LINE_CHANNEL_ACCESS_TOKEN = data.aws_ssm_parameter.line_channel_access_token.value
     }
   }
 }
@@ -261,6 +363,15 @@ resource "aws_apigatewayv2_route" "wave_app_options" {
   api_id    = aws_apigatewayv2_api.wave_app[0].id
   route_key = "OPTIONS /{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.wave_app[0].id}"
+}
+
+# LINE webhookは認証不要（LINE署名で検証するため）
+resource "aws_apigatewayv2_route" "webhook" {
+  count              = var.environment == "local" ? 0 : 1
+  api_id             = aws_apigatewayv2_api.wave_app[0].id
+  route_key          = "POST /line/webhook"
+  target             = "integrations/${aws_apigatewayv2_integration.wave_app[0].id}"
+  authorization_type = "NONE"
 }
 
 resource "aws_lambda_permission" "api_gateway" {
@@ -335,6 +446,14 @@ resource "aws_cloudfront_distribution" "wave_app" {
 # ── Outputs ──────────────────────────────────────────────────────
 output "lambda_url" {
   value = one(aws_apigatewayv2_stage.wave_app[*].invoke_url)
+}
+
+output "notify_lambda_arn" {
+  value = aws_lambda_function.wave_notify.arn
+}
+
+output "scheduler_role_arn" {
+  value = aws_iam_role.scheduler_role.arn
 }
 
 output "s3_bucket_name" {
