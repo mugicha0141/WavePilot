@@ -6,8 +6,25 @@ import FetchWaveData from "../utils/FetchWaveData";
 import API_BASE_URL from "../config";
 import authFetch from "../utils/authFetch";
 
-const COMPASS = ['北', '北北東', '北東', '東北東', '東', '東南東', '南東', '南南東', '南', '南南西', '南西', '西南西', '西', '西北西', '北西', '北北西'];
-const ARROWS = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+const COMPASS = [
+  "北",
+  "北北東",
+  "北東",
+  "東北東",
+  "東",
+  "東南東",
+  "南東",
+  "南南東",
+  "南",
+  "南南西",
+  "南西",
+  "西南西",
+  "西",
+  "西北西",
+  "北西",
+  "北北西",
+];
+const ARROWS = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"];
 const degToCompass = (deg) => COMPASS[Math.round(deg / 22.5) % 16];
 const degToArrow = (deg) => ARROWS[Math.round(((deg + 180) % 360) / 45) % 8];
 
@@ -130,9 +147,10 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
     });
 
     setChartData({
-      labels: displayData.map((item) =>
-        item.time.substring(0, 16).replace("T", " "),
-      ),
+      labels: displayData.map((item) => {
+        const d = new Date(item.time);
+        return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}時`;
+      }),
       datasets: [
         {
           label: "波高 (m)",
@@ -178,7 +196,10 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
                 const deg = windDataRef.current[context.dataIndex];
                 const spd = windSpeedRef.current[context.dataIndex];
                 const lines = [];
-                if (deg != null) lines.push(`風向: ${degToArrow(deg)} ${degToCompass(deg)} (${deg}°)`);
+                if (deg != null)
+                  lines.push(
+                    `風向: ${degToArrow(deg)} ${degToCompass(deg)} (${deg}°)`,
+                  );
                 if (spd != null) lines.push(`風速: ${spd} m/s`);
                 return lines;
               },

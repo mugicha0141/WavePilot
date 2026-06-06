@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import FavoritePlaceList from "./pages/FavoritePlaceList";
 import FavoritePlaceWaveChart from "./pages/FavoritePlaceWaveChart";
 import WaveMap from "./pages/WaveMap";
+import WaveNotice from "./pages/WaveNotice";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -99,6 +100,16 @@ function App() {
           element={
             isLoggedIn ? (
               <WaveMap currentUser={currentUser} />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
+        />
+        <Route
+          path="/WaveNotice"
+          element={
+            isLoggedIn ? (
+              <WaveNotice currentUser={currentUser} />
             ) : (
               <Login onLogin={handleLogin} />
             )
