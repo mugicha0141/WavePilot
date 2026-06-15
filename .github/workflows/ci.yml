@@ -21,5 +21,10 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Node.jsのバージョン確認
-        run: node --version
+      - name: clientの依存関係をインストール
+        run: npm install
+        working-directory: client
+
+      - name: clientをビルド
+        run: npm run build
+        working-directory: client
