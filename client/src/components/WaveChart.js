@@ -122,6 +122,7 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
       }
     };
     GetWaveData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]); // ★重要：locationが変わるたびに実行される
 
   //【表示更新用】days または rawWaveData が変わった時にグラフを再構成する

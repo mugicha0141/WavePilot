@@ -93,6 +93,7 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
     });
 
     return () => chartInstance.current?.destroy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartData]);
 
   // 更新ボタン
