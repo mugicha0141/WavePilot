@@ -344,6 +344,45 @@ print_url() {
   echo -e "   アクセス URL: ${BOLD}${S3_URL}${RESET}\n"
 }
 
+update_line_webhook() {
+  if [ "$ENV" != "prod" ]; then return; fi
+  step "LINE Webhook URL の更新・確認"
+
+  get_lambda_url
+  WEBHOOK_URL="${LAMBDA_URL}/line/webhook"
+
+  LINE_TOKEN=$(grep "^LINE_CHANNEL_ACCESS_TOKEN=" .env.prod 2>/dev/null | cut -d= -f2- \
+    || grep "^LINE_CHANNEL_ACCESS_TOKEN=" server/.env 2>/dev/null | cut -d= -f2-)
+  if [ -z "$LINE_TOKEN" ]; then
+    error "LINE_CHANNEL_ACCESS_TOKEN が見つかりません"
+  fi
+
+  # Webhook URL を更新
+  HTTP_STATUS=$(curl -s -o /tmp/line_webhook_res.json -w "%{http_code}" \
+    -X PUT https://api.line.me/v2/bot/channel/webhook/endpoint \
+    -H "Authorization: Bearer ${LINE_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d "{\"webhookEndpointUrl\": \"${WEBHOOK_URL}\"}")
+
+  if [ "$HTTP_STATUS" != "200" ]; then
+    error "LINE Webhook URL の更新失敗 (HTTP ${HTTP_STATUS}): $(cat /tmp/line_webhook_res.json)"
+  fi
+  ok "Webhook URL を更新しました: ${WEBHOOK_URL}"
+
+  # 疎通確認
+  TEST_STATUS=$(curl -s -o /tmp/line_webhook_test.json -w "%{http_code}" \
+    -X POST https://api.line.me/v2/bot/channel/webhook/test \
+    -H "Authorization: Bearer ${LINE_TOKEN}" \
+    -H "Content-Type: application/json")
+
+  RESULT=$(python3 -c "import sys,json; d=json.load(open('/tmp/line_webhook_test.json')); print('OK' if d.get('success') else 'NG: '+str(d))" 2>/dev/null || echo "不明")
+  if [ "$RESULT" = "OK" ]; then
+    ok "Webhook 疎通確認: 成功"
+  else
+    info "Webhook 疎通確認: ${RESULT}"
+  fi
+}
+
 # ── エントリーポイント ────────────────────────────────
 START=$(date +%s)
 echo -e "${BOLD}環境: ${ENV}  モード: ${MODE}${RESET}"
@@ -380,6 +419,7 @@ case "$MODE" in
     check_localstack
     setup_ssm
     run_terraform
+    update_line_webhook
     ;;
   all)
     check_localstack
@@ -390,6 +430,7 @@ case "$MODE" in
     if [ "$ENV" = "prod" ]; then
       seed_cognito
     fi
+    update_line_webhook
     build_frontend
     deploy_frontend
     start_local_server
