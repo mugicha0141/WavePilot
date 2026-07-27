@@ -286,6 +286,17 @@ STORMGLASS_API_KEY=本番用のAPIキー
 s3_bucket_name = "wavepilot-yourname-prod"
 ```
 
+### ④ LINE Messaging API の設定
+
+`server/.env`（またはプロジェクトルートの `.env.prod`）に LINE の認証情報を追加します。
+
+```env
+LINE_CHANNEL_SECRET=<LINE Developer Console の Channel secret>
+LINE_CHANNEL_ACCESS_TOKEN=<LINE Developer Console の Channel access token>
+```
+
+> LINE Developer Console → 該当チャンネル → Basic settings タブで Channel secret、Messaging API タブで Channel access token を確認できます。
+
 ### ⑤ デプロイ実行
 
 ```bash
@@ -297,10 +308,13 @@ s3_bucket_name = "wavepilot-yourname-prod"
 - SSM Parameter Store に API キーを登録
 - Terraform でインフラ構築（DynamoDB・Lambda・API Gateway・S3・CloudFront・Cognito・IAM）
 - Cognito テストユーザーの作成
+- **LINE Webhook URL の自動更新・疎通確認**（API Gateway の URL が変わっても自動で反映）
 - React フロントエンドのビルド・S3 デプロイ
 - CloudFront キャッシュの無効化
 
 完了するとアクセス URL が表示されます（CloudFront 経由の HTTPS）。
+
+> **LINE Webhook URL について：** API Gateway の URL はインフラを作り直すたびに変わります。`deploy.sh` は LINE Messaging API を通じて Webhook URL を自動更新するため、インフラ再作成後に LINE Developer Console で手動設定し直す必要はありません。
 
 ```
 アクセス URL: https://xxxxxx.cloudfront.net
