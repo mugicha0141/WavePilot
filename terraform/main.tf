@@ -118,6 +118,14 @@ resource "aws_lambda_function" "wave_notify" {
       AWS_ENDPOINT_URL          = "http://localstack:4566"
     }
   }
+  dynamic "logging_config" {
+    for_each = var.environment == "prod" ? [1] : []
+    content {
+      log_format = "Text"
+      log_group  = aws_cloudwatch_log_group.wave_notify[0].name
+    }
+  }
+  depends_on = [aws_cloudwatch_log_group.wave_notify]
 }
 
 # ── S3（静的ホスティング） ────────────────────────────────────────
@@ -239,6 +247,9 @@ resource "aws_cognito_user_pool" "main" {
     require_numbers   = false
     require_symbols   = false
   }
+   lambda_config {
+    post_authentication = aws_lambda_function.cognito_post_auth[0].arn
+  }
 }
 
 resource "aws_cognito_user_pool_client" "main" {
@@ -315,6 +326,15 @@ resource "aws_lambda_function" "wave_app_backend" {
       LINE_CHANNEL_ACCESS_TOKEN = data.aws_ssm_parameter.line_channel_access_token.value
     }
   }
+
+    dynamic "logging_config" {
+    for_each = var.environment == "prod" ? [1] : []
+    content {
+      log_format = "Text"
+      log_group  = aws_cloudwatch_log_group.wave_app_backend[0].name
+    }
+  }
+  depends_on = [aws_cloudwatch_log_group.wave_app_backend]
 }
 
 # ── API Gateway HTTP API（本番のみ・LocalStack community はapigatewayv2非対応）──
@@ -383,6 +403,46 @@ resource "aws_lambda_permission" "api_gateway" {
   source_arn    = "${aws_apigatewayv2_api.wave_app[0].execution_arn}/*/*"
 }
 
+# ── Cognito Post-Auth Lambda ──────────────────────────────────────
+resource "aws_cloudwatch_log_group" "cognito_post_auth" {
+  count             = var.environment == "prod" ? 1 : 0
+  name              = "/aws/lambda/wave-cognito-post-auth"
+  retention_in_days = 14
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_lambda_function" "cognito_post_auth" {
+  count            = var.environment == "prod" ? 1 : 0
+  function_name    = "wave-cognito-post-auth"
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "cognito_post_auth.handler"
+  runtime          = "nodejs22.x"
+  filename         = "index.zip"
+  source_code_hash = filebase64sha256("index.zip")
+
+  dynamic "logging_config" {
+    for_each = [1]
+    content {
+      log_format = "Text"
+      log_group  = aws_cloudwatch_log_group.cognito_post_auth[0].name
+    }
+  }
+
+  depends_on = [aws_cloudwatch_log_group.cognito_post_auth]
+}
+
+resource "aws_lambda_permission" "cognito_post_auth" {
+  count         = var.environment == "prod" ? 1 : 0
+  statement_id  = "AllowCognitoInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.cognito_post_auth[0].function_name
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.main[0].arn
+}
+
 # ── CloudFront（本番のみ） ────────────────────────────────────────
 resource "aws_cloudfront_distribution" "wave_app" {
   count               = var.environment == "prod" ? 1 : 0
@@ -437,6 +497,27 @@ resource "aws_cloudfront_distribution" "wave_app" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+# ── CloudWatch Log Groups ─────────────────────────────────────────
+resource "aws_cloudwatch_log_group" "wave_app_backend" {
+  count             = var.environment == "prod" ? 1 : 0
+  name              = "/aws/lambda/wave-app-backend"
+  retention_in_days = 14
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_cloudwatch_log_group" "wave_notify" {
+  count             = var.environment == "prod" ? 1 : 0
+  name              = "/aws/lambda/wave-notify"
+  retention_in_days = 14
 
   tags = {
     Environment = var.environment
