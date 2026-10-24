@@ -32,6 +32,7 @@ app.use(cors());
 // LINE署名検証用に生データを rawBody に保存しつつ JSON に変換
 app.use(
   bodyParser.json({
+    limit: "2mb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
@@ -250,10 +251,11 @@ const formatWaveMessageFromCache = (waveCache, placeName) => {
     const hJST = new Date(new Date(h.time).getTime() + 9 * 60 * 60 * 1000);
     const hour = hJST.getUTCHours();
     const label = hour < 12 ? `AM${hour}時` : `PM${hour - 12}時`;
-    const wave = (h.waveHeight?.sg ?? h.waveHeight?.noaa ?? 0).toFixed(1);
-    const spd = (h.windSpeed?.sg ?? h.windSpeed?.noaa ?? 0).toFixed(1);
-    const deg = h.windDirection?.sg ?? h.windDirection?.noaa ?? 0;
-    return `${label} 波高:${wave}m 風速:${spd}m/s 風向:${degToArrowL(deg)}${degToCompassL(deg)}`;
+    const wave  = (h.waveHeight?.sg  ?? h.waveHeight?.noaa  ?? 0).toFixed(1);
+    const swell = (h.swellHeight?.sg ?? h.swellHeight?.noaa ?? 0).toFixed(1);
+    const spd   = (h.windSpeed?.sg   ?? h.windSpeed?.noaa   ?? 0).toFixed(1);
+    const deg   = h.windDirection?.sg ?? h.windDirection?.noaa ?? 0;
+    return `${label} 波高:${wave}m うねり:${swell}m 風速:${spd}m/s 風向:${degToArrowL(deg)}${degToCompassL(deg)}`;
   });
   return `🌊 ${placeName} 本日の波情報（${month}/${date}）\n\n${lines.join("\n")}`;
 };
@@ -269,7 +271,7 @@ const fetchAndCacheWaveData = async (favId, lat, lng, placeName) => {
       params: {
         lat,
         lng,
-        params: "waveHeight,windDirection,windSpeed",
+        params: "waveHeight,swellHeight,windDirection,windSpeed",
         start: startSec,
       },
       headers: { Authorization: process.env.STORMGLASS_API_KEY },
@@ -355,7 +357,7 @@ const fetchWaveMessage = async (lat, lng, placeName) => {
       params: {
         lat,
         lng,
-        params: "waveHeight,windDirection,windSpeed",
+        params: "waveHeight,swellHeight,windDirection,windSpeed",
         start: startSec,
       },
       headers: { Authorization: process.env.STORMGLASS_API_KEY },
@@ -381,10 +383,11 @@ const fetchWaveMessage = async (lat, lng, placeName) => {
     const hJST = new Date(new Date(h.time).getTime() + 9 * 60 * 60 * 1000);
     const hour = hJST.getUTCHours();
     const label = hour < 12 ? `AM${hour}時` : `PM${hour - 12}時`;
-    const wave = (h.waveHeight?.sg ?? h.waveHeight?.noaa ?? 0).toFixed(1);
-    const spd = (h.windSpeed?.sg ?? h.windSpeed?.noaa ?? 0).toFixed(1);
-    const deg = h.windDirection?.sg ?? h.windDirection?.noaa ?? 0;
-    return `${label} 波高:${wave}m 風速:${spd}m/s 風向:${degToArrowL(deg)}${degToCompassL(deg)}`;
+    const wave  = (h.waveHeight?.sg  ?? h.waveHeight?.noaa  ?? 0).toFixed(1);
+    const swell = (h.swellHeight?.sg ?? h.swellHeight?.noaa ?? 0).toFixed(1);
+    const spd   = (h.windSpeed?.sg   ?? h.windSpeed?.noaa   ?? 0).toFixed(1);
+    const deg   = h.windDirection?.sg ?? h.windDirection?.noaa ?? 0;
+    return `${label} 波高:${wave}m うねり:${swell}m 風速:${spd}m/s 風向:${degToArrowL(deg)}${degToCompassL(deg)}`;
   });
 
   return (
@@ -954,7 +957,15 @@ app.get("/api/wave-data", async (req, res) => {
         params: {
           lat: lat,
           lng: lng,
-          params: "waveHeight,wavePeriod,windDirection,windSpeed",
+          params:
+            // waveHeight:海面全体の総合波高
+            // wavePeriod:波の周期
+            // swellHeight:うねりの高さ
+            // swellPeriod:うねりの周期
+            // swellDirection:うねりの向き・方位角
+            // windDirection:風向き
+            // windSpeed:風速
+            "waveHeight,wavePeriod,swellHeight,swellPeriod,swellDirection,windDirection,windSpeed",
           start: (() => {
             const JST = 9 * 3600;
             const nowSec = Math.floor(Date.now() / 1000);
@@ -968,8 +979,17 @@ app.get("/api/wave-data", async (req, res) => {
       },
     );
 
+    // 使うフィールドだけに絞ってサイズを削減（DynamoDB 400KB 制限対策）
+    const slimHours = (response.data.hours || []).map((h) => ({
+      time: h.time,
+      waveHeight: { sg: h.waveHeight?.sg, noaa: h.waveHeight?.noaa },
+      swellHeight: { sg: h.swellHeight?.sg, noaa: h.swellHeight?.noaa },
+      windDirection: { sg: h.windDirection?.sg, noaa: h.windDirection?.noaa },
+      windSpeed: { sg: h.windSpeed?.sg, noaa: h.windSpeed?.noaa },
+    }));
+
     res.json({
-      ...response.data,
+      hours: slimHours,
       rateLimit: {
         remaining:
           response.data.meta.dailyQuota - response.data.meta.requestCount,

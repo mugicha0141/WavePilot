@@ -197,9 +197,17 @@ update_lambda() {
       --function-name wave-app-backend \
       --zip-file fileb:///workspace/terraform/index.zip \
       --region ap-northeast-1 > /dev/null
+    aws lambda update-function-code \
+      --function-name wave-notify \
+      --zip-file fileb://terraform/index.zip \
+      --region ap-northeast-1 > /dev/null
   else
     aws lambda update-function-code \
       --function-name wave-app-backend \
+      --zip-file fileb://terraform/index.zip \
+      --region ap-northeast-1 > /dev/null
+    aws lambda update-function-code \
+      --function-name wave-notify \
       --zip-file fileb://terraform/index.zip \
       --region ap-northeast-1 > /dev/null
   fi
@@ -349,10 +357,12 @@ update_line_webhook() {
   step "LINE Webhook URL の更新・確認"
 
   get_lambda_url
-  WEBHOOK_URL="${LAMBDA_URL}/line/webhook"
+  WEBHOOK_URL="${LAMBDA_URL%/}/line/webhook"
 
-  LINE_TOKEN=$(grep "^LINE_CHANNEL_ACCESS_TOKEN=" .env.prod 2>/dev/null | cut -d= -f2- \
-    || grep "^LINE_CHANNEL_ACCESS_TOKEN=" server/.env 2>/dev/null | cut -d= -f2-)
+  LINE_TOKEN=$(grep "^LINE_CHANNEL_ACCESS_TOKEN=" .env.prod 2>/dev/null | cut -d= -f2-)
+  if [ -z "$LINE_TOKEN" ]; then
+    LINE_TOKEN=$(grep "^LINE_CHANNEL_ACCESS_TOKEN=" server/.env 2>/dev/null | cut -d= -f2-)
+  fi
   if [ -z "$LINE_TOKEN" ]; then
     error "LINE_CHANNEL_ACCESS_TOKEN が見つかりません"
   fi
@@ -362,7 +372,7 @@ update_line_webhook() {
     -X PUT https://api.line.me/v2/bot/channel/webhook/endpoint \
     -H "Authorization: Bearer ${LINE_TOKEN}" \
     -H "Content-Type: application/json" \
-    -d "{\"webhookEndpointUrl\": \"${WEBHOOK_URL}\"}")
+    -d "{\"endpoint\": \"${WEBHOOK_URL}\"}")
 
   if [ "$HTTP_STATUS" != "200" ]; then
     error "LINE Webhook URL の更新失敗 (HTTP ${HTTP_STATUS}): $(cat /tmp/line_webhook_res.json)"

@@ -93,7 +93,6 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
     });
 
     return () => chartInstance.current?.destroy();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartData]);
 
   // 更新ボタン
@@ -161,6 +160,16 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
           data: heights,
           borderColor: "rgb(75, 192, 192)",
           backgroundColor: "rgba(75, 192, 192, 0.2)",
+          fill: false,
+          tension: 0.1,
+        },
+        {
+          label: "うねりの高さ (m)",
+          data: filtered.map(
+            (h) => h.swellHeight?.sg || h.swellHeight?.noaa || 0,
+          ),
+          borderColor: "#36A2EB",
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
           fill: true,
           tension: 0.1,
         },
