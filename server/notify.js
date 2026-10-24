@@ -84,7 +84,7 @@ module.exports.handler = async (event) => {
       params: {
         lat,
         lng,
-        params: "waveHeight,windDirection,windSpeed",
+        params: "waveHeight,windDirection,windSpeed,swellHeight",
         start: startSec,
       },
       headers: { Authorization: process.env.STORMGLASS_API_KEY },
@@ -118,10 +118,11 @@ module.exports.handler = async (event) => {
     const hJST = new Date(new Date(h.time).getTime() + 9 * 60 * 60 * 1000);
     const hour = hJST.getUTCHours();
     const label = hour < 12 ? `AM${hour}時` : `PM${hour - 12}時`;
-    const wave = (h.waveHeight?.sg ?? h.waveHeight?.noaa ?? 0).toFixed(1);
-    const spd = (h.windSpeed?.sg ?? h.windSpeed?.noaa ?? 0).toFixed(1);
-    const deg = h.windDirection?.sg ?? h.windDirection?.noaa ?? 0;
-    return `${label} 波高:${wave}m 風速:${spd}m/s 風向き:${degToArrow(deg)}${degToCompass(deg)}`;
+    const wave  = (h.waveHeight?.sg  ?? h.waveHeight?.noaa  ?? 0).toFixed(1);
+    const swell = (h.swellHeight?.sg ?? h.swellHeight?.noaa ?? 0).toFixed(1);
+    const spd   = (h.windSpeed?.sg   ?? h.windSpeed?.noaa   ?? 0).toFixed(1);
+    const deg   = h.windDirection?.sg ?? h.windDirection?.noaa ?? 0;
+    return `${label} 波高:${wave}m うねり:${swell}m 風速:${spd}m/s 風向き:${degToArrow(deg)}${degToCompass(deg)}`;
   });
 
   const message =

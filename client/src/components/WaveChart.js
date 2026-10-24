@@ -154,13 +154,24 @@ const WaveChart = ({ currentUser, location = { lat: 0, lng: 0 } }) => {
       }),
       datasets: [
         {
-          label: "波高 (m)",
+          label: "うねりの高さ (m)",
           data: displayData.map(
-            (item) => item.waveHeight?.sg || item.waveHeight?.noaa || 0,
+            (item) => item.swellHeight?.sg || item.swellHeight?.noaa || 0,
           ),
           borderColor: "#36A2EB",
           backgroundColor: "rgba(54, 162, 235, 0.2)",
           fill: true,
+          tension: 0.3,
+        },
+        {
+          label: "波高 (m)",
+          data: displayData.map(
+            (item) => item.waveHeight?.sg || item.waveHeight?.noaa || 0,
+          ),
+          borderColor: "rgba(150, 150, 150, 0.8)",
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
+          borderWidth: 1.5,
+          fill: false,
           tension: 0.3,
         },
       ],
