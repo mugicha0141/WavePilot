@@ -256,9 +256,7 @@ deploy_frontend() {
 
   if [ "$ENV" = "prod" ]; then
     step "CloudFront キャッシュの無効化"
-    DIST_ID=$(aws cloudfront list-distributions \
-      --query "DistributionList.Items[?Origins.Items[?DomainName=='${BUCKET}.s3.amazonaws.com' || DomainName=='${BUCKET}.s3-website.ap-northeast-1.amazonaws.com']].Id" \
-      --output text 2>/dev/null | head -1 | tr -d '\r\n')
+    DIST_ID=$(tf output -raw cloudfront_distribution_id 2>/dev/null | tr -d '\r\n')
     if [ -n "$DIST_ID" ]; then
       aws cloudfront create-invalidation \
         --distribution-id "$DIST_ID" \

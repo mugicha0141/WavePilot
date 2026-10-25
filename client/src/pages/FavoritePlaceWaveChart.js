@@ -156,14 +156,6 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
       labels,
       datasets: [
         {
-          label: `波高 (m) - ${days === 7 ? "1週間" : `${days}日間`}`,
-          data: heights,
-          borderColor: "rgb(75, 192, 192)",
-          backgroundColor: "rgba(75, 192, 192, 0.2)",
-          fill: false,
-          tension: 0.1,
-        },
-        {
           label: "うねりの高さ (m)",
           data: filtered.map(
             (h) => h.swellHeight?.sg || h.swellHeight?.noaa || 0,
@@ -171,7 +163,16 @@ const FavoritePlaceWaveChart = ({ currentUser }) => {
           borderColor: "#36A2EB",
           backgroundColor: "rgba(54, 162, 235, 0.2)",
           fill: true,
-          tension: 0.1,
+          tension: 0.3,
+        },
+        {
+          label: "波高 (m)",
+          data: heights,
+          borderColor: "rgba(150, 150, 150, 0.8)",
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          borderWidth: 1.5,
+          fill: false,
+          tension: 0.3,
         },
       ],
     });
