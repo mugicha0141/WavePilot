@@ -552,3 +552,7 @@ output "cognito_user_pool_id" {
 output "cognito_client_id" {
   value = one(aws_cognito_user_pool_client.main[*].id)
 }
+
+output "cloudfront_distribution_id" {
+  value = one(aws_cloudfront_distribution.wave_app[*].id)
+}
